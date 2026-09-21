@@ -1,0 +1,366 @@
+/* ---------- Ahead palette ---------- */
+.auth-page {
+  --paper: #ffffff; /* card surface */
+  --oat: #f1ece1; /* subtle fills */
+  --lamp: #e6a040; /* signal, used sparingly */
+  --lamp-strong: #d68f2b;
+  --olive: #5c6a48; /* grounding */
+  --slate: #4b5147; /* secondary text */
+  --corridor: #22261e; /* dark ink — text only */
+  --ink: #14170f; /* body text */
+
+  --color-text: var(--ink);
+  --color-text-muted: var(--slate);
+  --color-border: #e7e1d4;
+  --color-surface: var(--oat);
+  --color-field: #faf7f1;
+  --color-signal: var(--lamp);
+  --color-error: #9e3a24;
+  --color-success: #4a5638;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --page-pad: 1.5rem;
+  --card-pad: 2.25rem;
+
+  /* Hold the page still: pin to the viewport, never let the page scroll. */
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-pad);
+  overflow: hidden;
+    background-image:
+    linear-gradient(
+      rgba(250, 247, 241, 0.86),
+      rgba(250, 247, 241, 0.86)
+    ),
+    url("../assets/a79540c1159df6b08aa6ba4651435a54.jpg");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  /* Never taller than the room it sits in, on any screen. */
+   height: 75%;
+  max-height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--paper);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 24px 60px -24px rgba(34, 38, 30, 0.35),
+    0 6px 16px rgba(34, 38, 30, 0.08);
+  padding: var(--card-pad);
+}
+
+/* The head and footer stay put; only the form scrolls. */
+.auth-card__brand,
+.auth-card__title,
+.auth-card__subtitle,
+.auth-links {
+  flex: 0 0 auto;
+}
+
+.auth-card__brand {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--olive);
+  text-decoration: none;
+  margin-bottom: 1.25rem;
+}
+
+.auth-card__title {
+  font-size: clamp(1.35rem, 1.05rem + 1.4vw, 1.6rem);
+  font-weight: 800;
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.auth-card__subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0 0 1.4rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  /* The one scroll region. min-height:0 lets it shrink inside the flex card. */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  /* Breathing room so focus rings aren't clipped by the scroll box. */
+  padding: 6px 4px;
+  margin: 0 -4px;
+  overscroll-behavior: contain;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.auth-form::-webkit-scrollbar {
+  width: 10px;
+}
+
+.auth-form::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 999px;
+  border: 3px solid var(--color-surface);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.form-group input {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background-color: var(--color-field);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--olive);
+  box-shadow: 0 0 0 3px rgba(92, 106, 72, 0.2);
+  background-color: #fcfaf4;
+}
+
+.role-fieldset {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem 1rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.role-fieldset legend {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 0 0.3rem;
+}
+
+.role-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-top: 0.4rem;
+}
+
+.role-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.role-option input {
+  accent-color: var(--olive);
+  width: 1rem;
+  height: 1rem;
+}
+
+.form-error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-error);
+}
+
+.form-success {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-success);
+}
+
+.btn--block {
+  width: 100%;
+  text-align: center;
+}
+
+.btn--primary {
+  background-color: var(--color-signal);
+  color: var(--corridor);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.btn--primary:hover {
+  background-color: var(--lamp-strong);
+  transform: translateY(-1px);
+}
+
+.btn--primary:focus-visible {
+  outline: 3px solid var(--olive);
+  outline-offset: 2px;
+}
+
+.btn--primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-top: 1.4rem;
+  flex-wrap: wrap;
+}
+
+.auth-link {
+  font-size: 0.9rem;
+  color: var(--olive);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.auth-link--button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+/* ---------- Responsive ---------- */
+
+/* Tablets / small laptops */
+@media (max-width: 640px) {
+  .auth-page {
+    --page-pad: 1rem;
+    --card-pad: 1.9rem 1.6rem;
+    align-items: flex-start;
+  }
+
+  .auth-card {
+    margin: auto 0;
+  }
+}
+
+/* Phones */
+@media (max-width: 420px) {
+  .auth-page {
+    --page-pad: 0.75rem;
+    --card-pad: 1.65rem 1.35rem;
+  }
+
+  .auth-card {
+    border-radius: 16px;
+  }
+
+  .auth-card__brand {
+    margin-bottom: 1rem;
+  }
+
+  .auth-card__subtitle {
+    margin-bottom: 1.15rem;
+  }
+
+  .auth-form {
+    gap: 0.95rem;
+  }
+
+  /* 16px keeps iOS Safari from zooming the field on focus. */
+  .form-group input {
+    font-size: 16px;
+  }
+
+  .role-options {
+    gap: 0.6rem 1rem;
+  }
+
+  .auth-links {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 1.15rem;
+  }
+}
+
+/* Short viewports (landscape phones, split screens): tighten the head so the
+   scroll region keeps as much room as possible. */
+@media (max-height: 620px) {
+  .auth-page {
+    --card-pad: 1.5rem 1.75rem;
+    align-items: flex-start;
+  }
+
+  .auth-card {
+    margin: auto 0;
+  }
+
+  .auth-card__brand {
+    margin-bottom: 0.75rem;
+  }
+
+  .auth-card__subtitle {
+    margin-bottom: 1rem;
+  }
+
+  .auth-form {
+    gap: 0.85rem;
+  }
+}
+
+/* Very large screens: nudge the card up a touch and give it more presence. */
+@media (min-width: 1280px) and (min-height: 900px) {
+  .auth-card {
+    max-width: 440px;
+    --card-pad: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn--primary,
+  .form-group input {
+    transition: none;
+  }
+
+  .btn--primary:hover {
+    transform: none;
+  }
+}
