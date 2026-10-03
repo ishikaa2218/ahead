@@ -4,11 +4,12 @@ const { hashPassword, verifyPassword } = require('../utils/password');
 const { signAuthToken, TOKEN_COOKIE_NAME, TOKEN_COOKIE_MAX_AGE_MS } = require('../utils/jwt');
 
 const router = express.Router();
+const isProduction = process.env.NODE_ENV === 'production';
 
 const AUTH_COOKIE_OPTIONS = {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: false,
+    sameSite: isProduction ? 'none' : 'lax',
+    secure: isProduction,
     maxAge: TOKEN_COOKIE_MAX_AGE_MS
 };
 
