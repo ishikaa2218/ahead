@@ -5,7 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 require('./db/connection');
-const port = 3000;
+const port = process.env.PORT || 3000;
 const app = express();
 const postRoutes = require('./routes/post_routes')
 const getRoutes = require('./routes/get_routes')
@@ -28,6 +28,7 @@ app.use('/payments', paymentRoutes)
 
 app.listen(port,()=>{
     console.log("working");
+    console.log(`Server running on port ${port}`);
     verifyEmailTransporter();
     startInterviewReminderPoller();
 })
