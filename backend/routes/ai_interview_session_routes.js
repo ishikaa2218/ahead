@@ -7,6 +7,7 @@ const { getGroqChatCompletion, transcribeAudio } = require('../utils/groq');
 const { sendEmail } = require('../utils/email');
 const { aiInterviewFeedbackEmail } = require('../utils/emailTemplates');
 const { isRazorpayEnabled } = require('../utils/razorpay');
+const { generateLoginId } = require('../utils/randomId');
 
 const router = express.Router();
 const query = promisify(db.query).bind(db);
@@ -185,13 +186,14 @@ router.post('/:id/start', requireAuth, async (req, res) => {
         }
 
         let session = await getLatestSession(id);
+        const interviewStatusId = generateLoginId();
 
         if (!session) {
             const insertResult = await query(
                 `INSERT INTO ai_interview_session_status
-                    (ai_interview_applications_id, status, total_questions, started_at)
-                 VALUES (?, 'in_progress', ?, NOW())`,
-                [id, application.question_count]
+                    (ai_interview_session_status_id , ai_interview_applications_id, status, total_questions, started_at)
+                 VALUES (?, ?, 'in_progress', ?, NOW())`,
+                [interviewStatusId, id, application.question_count]
             );
             session = await getSessionById(insertResult.insertId);
             await query(`UPDATE ai_interview_applications SET status = 'in_progress' WHERE id = ?`, [application.id]);
@@ -256,6 +258,7 @@ router.post('/:id/chat', requireAuth, async (req, res) => {
         }
 
         let questionsAnswered = session.questions_answered;
+        const answerId = generateLoginId();
 
         if (typeof answer === 'string' && answer.trim()) {
             const pending = await query(
@@ -268,8 +271,8 @@ router.post('/:id/chat', requireAuth, async (req, res) => {
             }
 
             await query(
-                `INSERT INTO ai_interview_answers (ai_interview_question_id, answer_text, answered_at) VALUES (?, ?, NOW())`,
-                [pending[0].ai_interview_question_id, answer.trim()]
+                `INSERT INTO ai_interview_answers (ai_interview_answer_id, ai_interview_question_id, answer_text, answered_at) VALUES (?, ?, ?, NOW())`,
+                [answerId, pending[0].ai_interview_question_id, answer.trim()]
             );
 
             questionsAnswered += 1;
@@ -305,6 +308,7 @@ router.post('/:id/chat', requireAuth, async (req, res) => {
         }
 
         const questionText = await getGroqChatCompletion(messages);
+        const questionId = generateLoginId();
 
         const questionType = application.interview_type === 'Technical' ? 'technical'
             : application.interview_type === 'Behavioral' ? 'behavioral'
@@ -314,16 +318,16 @@ router.post('/:id/chat', requireAuth, async (req, res) => {
         if (questionType) {
             await query(
                 `INSERT INTO ai_interview_questions
-                    (ai_interview_session_status_id, question_number, question_text, question_type, difficulty, asked_at)
-                 VALUES (?, ?, ?, ?, ?, NOW())`,
-                [session.ai_interview_session_status_id, nextQuestionNumber, questionText, questionType, difficulty]
+                    (ai_interview_question_id, ai_interview_session_status_id, question_number, question_text, question_type, difficulty, asked_at)
+                 VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+                [questionId, session.ai_interview_session_status_id, nextQuestionNumber, questionText, questionType, difficulty]
             );
         } else {
             await query(
                 `INSERT INTO ai_interview_questions
-                    (ai_interview_session_status_id, question_number, question_text, difficulty, asked_at)
-                 VALUES (?, ?, ?, ?, NOW())`,
-                [session.ai_interview_session_status_id, nextQuestionNumber, questionText, difficulty]
+                    (ai_interview_question_id, ai_interview_session_status_id, question_number, question_text, difficulty, asked_at)
+                 VALUES (?, ?, ?, ?, ?, NOW())`,
+                [questionId, session.ai_interview_session_status_id, nextQuestionNumber, questionText, difficulty]
             );
         }
 
@@ -417,14 +421,16 @@ router.post('/:id/complete', requireAuth, async (req, res) => {
 
         const history = await getSessionHistory(session.ai_interview_session_status_id);
         const evaluation = await generateEvaluation(application, history);
+        const feedbackId = generateLoginId();
 
         await query(
             `INSERT INTO ai_interview_feedback
-                (ai_interview_session_status_id, overall_score, technical_score, communication_score,
+                (ai_interview_feedback_id, ai_interview_session_status_id, overall_score, technical_score, communication_score,
                  problem_solving_score, confidence_score, relevance_score, strengths,
                  areas_for_improvement, detailed_feedback, recommendation)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
+                feedbackId,
                 session.ai_interview_session_status_id,
                 evaluation.overallScore,
                 evaluation.technicalScore,

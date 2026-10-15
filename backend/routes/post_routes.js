@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db/connection');
 const { hashPassword, verifyPassword } = require('../utils/password');
 const { signAuthToken, TOKEN_COOKIE_NAME, TOKEN_COOKIE_MAX_AGE_MS } = require('../utils/jwt');
+const { generateLoginId } = require("../utils/randomId");
 
 const router = express.Router();
 const isProduction = process.env.NODE_ENV === 'production';
@@ -35,9 +36,10 @@ router.post('/signup-details', (req, res) => {
     const cleanName = name.trim();
     const cleanEmail = email.trim().toLowerCase();
     const hashedPassword = hashPassword(password);
+    const loginId = generateLoginId();
 
-    const sql = 'INSERT INTO sign_up (name, email, password, role) VALUES (?, ?, ?, ?)';
-    db.query(sql, [cleanName, cleanEmail, hashedPassword, role], (err, result) => {
+    const sql = 'INSERT INTO sign_up (login_id, name, email, password, role) VALUES (?,?, ?, ?, ?)';
+    db.query(sql, [loginId, cleanName, cleanEmail, hashedPassword, role], (err, result) => {
         if (err) {
             if (err.code === 'ER_DUP_ENTRY') {
                 return res.status(409).json({ message: 'An account with this email already exists.' });
@@ -48,6 +50,7 @@ router.post('/signup-details', (req, res) => {
 
         return res.status(201).json({
             id: result.insertId,
+            login_id: loginId,
             name: cleanName,
             email: cleanEmail,
             role

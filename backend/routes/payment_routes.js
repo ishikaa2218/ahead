@@ -6,6 +6,7 @@ const { requireAuth } = require('../middleware/auth');
 const { isRazorpayEnabled, createOrder, fetchPayment, verifyPaymentSignature } = require('../utils/razorpay');
 const { sendEmail } = require('../utils/email');
 const { aiInterviewConfirmationEmail, companyInterviewConfirmationEmail } = require('../utils/emailTemplates');
+const { generateLoginId } = require('../utils/randomId');
 
 const router = express.Router();
 const query = promisify(db.query).bind(db);
@@ -192,8 +193,9 @@ router.post('/ai-interview/order', requireAuth, async (req, res) => {
     }
 
     try {
-        const applicationId = crypto.randomUUID();
+        const applicationId = generateLoginId();
         const amount = getAIInterviewAmountPaise(value.interviewMode);
+        const transactionId = generateLoginId();
 
         const order = await createOrder({
             amount,
@@ -204,9 +206,9 @@ router.post('/ai-interview/order', requireAuth, async (req, res) => {
 
         await query(
             `INSERT INTO razorpay_transactions
-                (user_id, application_type, application_id, razorpay_order_id, amount, currency, status)
-             VALUES (?, 'ai_interview', ?, ?, ?, ?, 'created')`,
-            [req.user.loginId, applicationId, order.id, amount, order.currency]
+                (razorpay_transaction_id, user_id, application_type, application_id, razorpay_order_id, amount, currency, status)
+             VALUES (?, ?, 'ai_interview', ?, ?, ?, ?, 'created')`,
+            [transactionId, req.user.loginId, applicationId, order.id, amount, order.currency]
         );
 
         return res.status(201).json({
@@ -256,8 +258,9 @@ router.post('/company-interview/order', requireAuth, async (req, res) => {
             return res.status(409).json({ message: 'This slot has just been booked by someone else. Please pick another.' });
         }
 
-        const applicationId = crypto.randomUUID();
+        const applicationId = generateLoginId();
         const amount = COMPANY_INTERVIEW_PRICE_INR * 100;
+        const transactionId = generateLoginId();
 
         const order = await createOrder({
             amount,
@@ -268,9 +271,9 @@ router.post('/company-interview/order', requireAuth, async (req, res) => {
 
         await query(
             `INSERT INTO razorpay_transactions
-                (user_id, application_type, application_id, razorpay_order_id, amount, currency, status)
-             VALUES (?, 'company_interview', ?, ?, ?, ?, 'created')`,
-            [req.user.loginId, applicationId, order.id, amount, order.currency]
+                (razorpay_transaction_id, user_id, application_type, application_id, razorpay_order_id, amount, currency, status)
+             VALUES (?, ?, 'company_interview', ?, ?, ?, ?, 'created')`,
+            [transactionId, req.user.loginId, applicationId, order.id, amount, order.currency]
         );
 
         return res.status(201).json({
