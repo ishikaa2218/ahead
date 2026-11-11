@@ -1,12 +1,14 @@
 import { useState } from "react";
 import type { SubmitEvent } from "react";
 import { Link } from "react-router";
-import heroImage from "../assets/hero.png";
+import lightImage from "../assets/a79540c1159df6b08aa6ba4651435a54.jpg";
 import { Navbar } from "../components/Navbar";
+import { SiteFooter } from "../components/SiteFooter";
+import { useReveal } from "../components/useReveal";
 import "../stylesheets/home.css";
+import "../stylesheets/becomeInterviewer.css";
 
 interface Feature {
-  icon: string;
   title: string;
   description: string;
 }
@@ -16,72 +18,52 @@ interface Step {
   description: string;
 }
 
-interface Testimonial {
-  quote: string;
-  name: string;
-  role: string;
-}
-
-interface Stat {
-  value: string;
-  label: string;
-}
-
 const BENEFITS: Feature[] = [
   {
-    icon: "💰",
-    title: "Earn On Your Terms",
+    title: "Earn on your terms",
     description:
       "Get paid per session, on a flexible schedule that fits around your day job.",
   },
   {
-    icon: "🕒",
-    title: "Flexible Scheduling",
+    title: "Flexible scheduling",
     description:
       "Pick the slots that work for you. No minimum hours, no long-term commitment.",
   },
   {
-    icon: "🌱",
-    title: "Give Back",
+    title: "Give back",
     description:
-      "Help students and job seekers build the confidence you once needed too.",
+      "Help students and job seekers build the composure you once needed too.",
   },
   {
-    icon: "🏆",
-    title: "Build Your Reputation",
+    title: "Build your reputation",
     description:
-      "Grow a track record of helping candidates land offers at companies you know well.",
+      "Grow a track record of preparing candidates for companies you know well.",
   },
   {
-    icon: "🎯",
-    title: "Interview Your Way",
+    title: "Interview your way",
     description:
-      "Bring your own style — technical deep dives, behavioral rounds, or a mix of both.",
+      "Bring your own style — technical deep dives, behavioural rounds, or a mix of both.",
   },
   {
-    icon: "📋",
-    title: "We Handle the Logistics",
+    title: "We handle the logistics",
     description:
-      "Scheduling, reminders, and candidate details are taken care of — you just show up.",
+      "Scheduling, reminders and candidate details are taken care of — you just show up.",
   },
 ];
 
 const REQUIREMENTS: Feature[] = [
   {
-    icon: "✓",
-    title: "Real Industry Experience",
+    title: "Real industry experience",
     description:
       "2+ years working in the role or domain you'd like to interview candidates for.",
   },
   {
-    icon: "✓",
-    title: "Strong Communication",
+    title: "Strong communication",
     description:
       "Comfortable giving clear, constructive feedback that helps candidates improve.",
   },
   {
-    icon: "✓",
-    title: "A Little Time to Spare",
+    title: "A little time to spare",
     description:
       "Even an hour or two a week is enough to make a real difference.",
   },
@@ -89,58 +71,32 @@ const REQUIREMENTS: Feature[] = [
 
 const STEPS: Step[] = [
   {
-    title: "Sign Up",
+    title: "Sign up",
     description:
       "Create your interviewer account and tell us about your background.",
   },
   {
-    title: "Set Your Availability",
+    title: "Set your availability",
     description:
       "Add the time slots you're free — update them whenever your schedule changes.",
   },
   {
-    title: "Take Interviews",
+    title: "Take interviews",
     description:
       "Meet candidates, ask the questions you know matter, and share honest feedback.",
   },
   {
-    title: "Get Paid",
+    title: "Get paid",
     description:
       "Earn for every completed session, with payouts on a regular schedule.",
   },
 ];
 
-const TESTIMONIALS: Testimonial[] = [
-  {
-    quote:
-      "I get to relive my own interview prep, except this time I'm the one giving the confidence boost.",
-    name: "Ananya Rao",
-    role: "Senior SDE, interviewer since 2024",
-  },
-  {
-    quote:
-      "It's flexible enough to fit around my actual job. A couple of sessions a week and I've already helped a dozen students.",
-    name: "Vikram Desai",
-    role: "Engineering Manager",
-  },
-  {
-    quote:
-      "Genuinely rewarding. Watching someone go from nervous to confident over a few sessions is the best part of my week.",
-    name: "Sana Kapoor",
-    role: "Product Manager",
-  },
-];
-
-const STATS: Stat[] = [
-  { value: "500+", label: "Active Interviewers" },
-  { value: "10,000+", label: "Interviews Conducted" },
-  { value: "4.8/5", label: "Average Interviewer Rating" },
-  { value: "₹500+", label: "Typical Earnings Per Session" },
-];
-
 export function BecomeInterviewer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+
+  useReveal();
 
   function handleNewsletterSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -152,189 +108,154 @@ export function BecomeInterviewer() {
   }
 
   return (
-    <div className="home">
+    <div className="home interviewer page">
       <Navbar />
 
-      <main>
-        <section className="hero">
-          <div className="hero__content">
-            <h1 className="hero__title">
-              Share your expertise. <span>Shape a career.</span>
-            </h1>
-            <p className="hero__subtitle">
-              Become an Ahead interviewer and help students and job seekers
-              prepare for the interviews that matter — on a schedule that
-              works for you, with pay for every session.
+      <main id="main">
+        <section className="iv-hero" aria-labelledby="iv-title">
+          <div className="wrap iv-hero__grid">
+            <div className="iv-hero__copy">
+              <p className="eyebrow hero__eyebrow">For interviewers</p>
+              <h1 id="iv-title" className="hero__title serif iv-hero__title">
+                <span className="hero__line">Be the person in the room</span>{" "}
+                <span className="hero__line">
+                  <em>you once needed.</em>
+                </span>
+              </h1>
+              <p className="hero__lede">
+                Become an Ahead interviewer and help students and job seekers
+                prepare for the interviews that matter — on a schedule that
+                works for you, with pay for every session.
+              </p>
+              <div className="hero__actions">
+                <Link
+                  to="/login?mode=signup&role=interviewer"
+                  className="btn btn--dusk"
+                >
+                  Become an interviewer
+                  <span className="btn__arrow" aria-hidden="true">→</span>
+                </Link>
+                <a href="#interviewer-how-it-works" className="link-arrow">
+                  See how it works <span aria-hidden="true">→</span>
+                </a>
+              </div>
+            </div>
+            <figure className="iv-hero__image">
+              <img
+                src={lightImage}
+                alt="Morning light falling through blinds onto a warm wall"
+                width={736}
+                height={1104}
+              />
+              <figcaption className="iv-hero__caption serif">
+                “Okay — when shall we start?”
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section id="interviewer-benefits" className="iv-benefits" aria-labelledby="iv-benefits-title">
+          <div className="wrap">
+            <header className="section-head">
+              <p className="eyebrow" data-reveal>Why interview with Ahead</p>
+              <h2 id="iv-benefits-title" className="section-head__title serif" data-reveal style={{ ["--i" as string]: 1 }}>
+                Mentor the next ones in, <em>and be paid for your time.</em>
+              </h2>
+            </header>
+            <ul className="iv-list">
+              {BENEFITS.map((benefit, index) => (
+                <li key={benefit.title} className="iv-list__item" data-reveal style={{ ["--i" as string]: index % 3 }}>
+                  <span className="iv-list__num" aria-hidden="true">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <h3 className="iv-list__title">{benefit.title}</h3>
+                  <p className="iv-list__desc">{benefit.description}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section id="interviewer-how-it-works" className="moments" aria-labelledby="iv-steps-title">
+          <div className="wrap moments__grid">
+            <header className="moments__head">
+              <p className="eyebrow" data-reveal>How it works</p>
+              <h2 id="iv-steps-title" className="section-head__title serif" data-reveal style={{ ["--i" as string]: 1 }}>
+                From sign-up to your first interview, <em>in four steps.</em>
+              </h2>
+            </header>
+            <ol className="moments__list">
+              {STEPS.map((step, index) => (
+                <li key={step.title} className="moment" data-reveal>
+                  <span className="moment__index" aria-hidden="true">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div className="moment__body">
+                    <h3 className="moment__title">{step.title}</h3>
+                    <p className="moment__desc">{step.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section id="interviewer-requirements" className="iv-reqs" aria-labelledby="iv-reqs-title">
+          <div className="wrap iv-reqs__grid">
+            <header className="iv-reqs__head">
+              <p className="eyebrow" data-reveal>What we look for</p>
+              <h2 id="iv-reqs-title" className="section-head__title serif" data-reveal style={{ ["--i" as string]: 1 }}>
+                No certificate needed.
+              </h2>
+              <p className="lede" data-reveal style={{ ["--i" as string]: 2 }}>
+                Just real experience and a willingness to help someone walk in
+                steadier than they would have alone.
+              </p>
+            </header>
+            <dl className="iv-reqs__list">
+              {REQUIREMENTS.map((requirement, index) => (
+                <div key={requirement.title} data-reveal style={{ ["--i" as string]: index }}>
+                  <dt>{requirement.title}</dt>
+                  <dd>{requirement.description}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        <section className="closing" aria-labelledby="iv-closing-title">
+          <div className="wrap iv-closing">
+            <h2 id="iv-closing-title" className="closing__title serif" data-reveal>
+              Ready to help someone <em>go ahead?</em>
+            </h2>
+            <p className="closing__lede" data-reveal style={{ ["--i" as string]: 1 }}>
+              Sign up as an interviewer and set your first availability slot.
             </p>
-            <div className="hero__actions">
+            <div className="closing__actions" data-reveal style={{ ["--i" as string]: 2 }}>
               <Link
                 to="/login?mode=signup&role=interviewer"
-                className="btn btn--primary"
+                className="btn btn--amber"
               >
-                Become an Interviewer
+                Become an interviewer
+                <span className="btn__arrow" aria-hidden="true">→</span>
               </Link>
-              <a href="#interviewer-how-it-works" className="btn btn--secondary">
-                See How It Works
-              </a>
             </div>
           </div>
-          <div className="hero__image-wrapper">
-            <img
-              src={heroImage}
-              alt="An experienced professional conducting a mock interview on Ahead"
-              className="hero__image"
-            />
-          </div>
-        </section>
-
-        <section className="stats" aria-label="Ahead interviewers by the numbers">
-          <div className="stats__inner">
-            {STATS.map((stat) => (
-              <div key={stat.label} className="stats__item">
-                <span className="stats__value">{stat.value}</span>
-                <span className="stats__label">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="interviewer-benefits" className="features">
-          <h2 className="section-title">Why interview with Ahead</h2>
-          <p className="section-subtitle">
-            A flexible way to mentor the next generation while earning for
-            your time.
-          </p>
-          <div className="features__grid">
-            {BENEFITS.map((benefit) => (
-              <div key={benefit.title} className="feature-card">
-                <span className="feature-card__icon" aria-hidden="true">
-                  {benefit.icon}
-                </span>
-                <h3 className="feature-card__title">{benefit.title}</h3>
-                <p className="feature-card__description">
-                  {benefit.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="interviewer-how-it-works" className="how-it-works">
-          <h2 className="section-title">How it works</h2>
-          <p className="section-subtitle">
-            From sign-up to your first interview in four simple steps.
-          </p>
-          <ol className="steps">
-            {STEPS.map((step, index) => (
-              <li key={step.title} className="step">
-                <span className="step__number">{index + 1}</span>
-                <h3 className="step__title">{step.title}</h3>
-                <p className="step__description">{step.description}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section id="interviewer-requirements" className="features">
-          <h2 className="section-title">What we look for</h2>
-          <p className="section-subtitle">
-            No formal certification needed — just real experience and a
-            willingness to help.
-          </p>
-          <div className="features__grid">
-            {REQUIREMENTS.map((requirement) => (
-              <div key={requirement.title} className="feature-card">
-                <span className="feature-card__icon" aria-hidden="true">
-                  {requirement.icon}
-                </span>
-                <h3 className="feature-card__title">{requirement.title}</h3>
-                <p className="feature-card__description">
-                  {requirement.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="testimonials" className="testimonials">
-          <h2 className="section-title">Hear from our interviewers</h2>
-          <div className="testimonials__grid">
-            {TESTIMONIALS.map((testimonial) => (
-              <figure key={testimonial.name} className="testimonial-card">
-                <blockquote className="testimonial-card__quote">
-                  “{testimonial.quote}”
-                </blockquote>
-                <figcaption className="testimonial-card__author">
-                  <span className="testimonial-card__name">
-                    {testimonial.name}
-                  </span>
-                  <span className="testimonial-card__role">
-                    {testimonial.role}
-                  </span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </section>
-
-        <section className="cta">
-          <h2 className="cta__title">Ready to help someone get ahead?</h2>
-          <p className="cta__subtitle">
-            Sign up as an interviewer and set your first availability slot
-            today.
-          </p>
-          <Link
-            to="/login?mode=signup&role=interviewer"
-            className="btn btn--primary"
-          >
-            Become an Interviewer
-          </Link>
         </section>
       </main>
 
-      <footer className="footer">
-        <div className="footer__inner">
-          <div className="footer__brand">
-            <span className="footer__logo">Ahead</span>
-            <p className="footer__tagline">
-              Join a community of professionals helping candidates practice
-              their way to offers.
-            </p>
-          </div>
-
-          <form
-            className="footer__newsletter"
-            onSubmit={handleNewsletterSubmit}
-            aria-label="Subscribe to interviewer updates"
-          >
-            <label htmlFor="interviewer-newsletter-email" className="footer__label">
-              Get interviewer tips and updates
-            </label>
-            <div className="footer__newsletter-row">
-              <input
-                id="interviewer-newsletter-email"
-                type="email"
-                required
-                placeholder="you@example.com"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="footer__input"
-              />
-              <button type="submit" className="btn btn--primary">
-                Subscribe
-              </button>
-            </div>
-            {subscribed && (
-              <p className="footer__success" role="status">
-                Thanks for subscribing! Keep an eye on your inbox.
-              </p>
-            )}
-          </form>
-        </div>
-        <p className="footer__copyright">
-          © {new Date().getFullYear()} Ahead. All rights reserved.
-        </p>
-      </footer>
+      <SiteFooter
+        tagline="Join the people who make the first time feel familiar."
+        newsletter={{
+          inputId: "interviewer-newsletter-email",
+          label: "Interviewer tips and updates",
+          ariaLabel: "Subscribe to interviewer updates",
+          email,
+          onEmailChange: setEmail,
+          subscribed,
+          onSubmit: handleNewsletterSubmit,
+        }}
+      />
     </div>
   );
 }

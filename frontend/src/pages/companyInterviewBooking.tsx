@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -13,6 +13,8 @@ import {
 } from '../axios/booking';
 import { getApiErrorMessage } from '../axios/data';
 import { useAuth } from '../context/useAuth';
+import { AppHeader } from '../components/AppHeader';
+import { Icon } from '../components/Icon';
 import '../stylesheets/companyInterviewBooking.css';
 
 // ─────────────────────────────────────────────────────────────
@@ -141,40 +143,41 @@ function formatSlotTime(iso: string, tz: string) {
 // ─────────────────────────────────────────────────────────────
 
 const STEPS = [
-  'Select Interviewer & Slot',
-  'Interview Details',
-  'Review & Pay',
+  'Interviewer & time',
+  'Interview details',
+  'Review & pay',
   'Confirmed',
 ];
 
 function StepIndicator({ current }: { current: number }) {
   return (
-    <div className="bk-steps">
+    <ol className="bk-steps" aria-label="Booking progress">
       {STEPS.map((label, i) => {
         const num = i + 1;
         const done = num < current;
         const active = num === current;
 
         return (
-          <div
+          <li
             key={num}
             className={`bk-step ${done ? 'done' : ''} ${
               active ? 'active' : ''
             }`}
+            aria-current={active ? 'step' : undefined}
           >
-            <div className="bk-step-circle">
-              {done ? '✓' : num}
-            </div>
+            <span className="bk-step-circle" aria-hidden="true">
+              {done ? <Icon name="check" size={14} /> : num}
+            </span>
 
-            <span className="bk-step-label">{label}</span>
-
-            {i < STEPS.length - 1 && (
-              <div className="bk-step-line" />
-            )}
-          </div>
+            <span className="bk-step-label">
+              <span className="sr-only">Step {num}: </span>
+              {label}
+              {done && <span className="sr-only"> (done)</span>}
+            </span>
+          </li>
         );
       })}
-    </div>
+    </ol>
   );
 }
 
@@ -215,6 +218,14 @@ export function CompanyInterviewBooking() {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasFailedAttempt, setHasFailedAttempt] = useState(false);
+
+  // Bring any new message into view, wherever on the page the user is.
+  const errorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error) {
+      errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
 
   // ─────────────────────────────────────────────────────────
   // Load interviewers & slots
@@ -315,7 +326,7 @@ export function CompanyInterviewBooking() {
         description: order.description,
         order_id: order.orderId,
         prefill: order.prefill,
-        theme: { color: '#6c4cff' },
+        theme: { color: '#4a3b57' },
         handler: (response) => {
           verifyCompanyInterviewPayment({
             ...payload,
@@ -430,30 +441,56 @@ export function CompanyInterviewBooking() {
   // Render
   // ─────────────────────────────────────────────────────────
 
+  const interviewerSlots = selectedInterviewer
+    ? slots.filter(
+        (slot) => slot.interviewer_uuid === selectedInterviewer.uuid,
+      )
+    : [];
+
+  // Group the selected interviewer's slots by day, for display only.
+  const slotsByDay = interviewerSlots.reduce<{ day: string; items: Slot[] }[]>(
+    (groups, slot) => {
+      const day = formatSlotDate(slot.start_time, slot.timezone);
+      const group = groups.find((g) => g.day === day);
+      if (group) group.items.push(slot);
+      else groups.push({ day, items: [slot] });
+      return groups;
+    },
+    [],
+  );
+
   return (
-    <div className="bk-page">
+    <div className="bk-page real-room page">
+      <AppHeader tone="dusk" crumb="The Real Room · Company-based interview" />
 
-      {/* Navbar */}
-      <nav className="bk-nav">
-        <a href="/" className="bk-logo">
-          Ahead<span>.</span>
-        </a>
+      <section className="bk-hero">
+        <div className="wrap wrap--wide">
+          <p className="eyebrow bk-hero__eyebrow">The Real Room</p>
+          <h1 className="bk-hero__title serif">
+            A person, a company, <em>a time.</em>
+          </h1>
+          <p className="bk-hero__lede">
+            Choose someone who does this for real, pick a slot they've opened,
+            and tell them what you're walking into. They'll prepare for it.
+          </p>
+          <StepIndicator current={step} />
+        </div>
+      </section>
 
-        <span className="bk-nav-tag">
-          Company-Based Interview
-        </span>
-      </nav>
-
-      <div className="bk-container">
-
-        <StepIndicator current={step} />
+      <main id="main" className="wrap wrap--wide bk-container">
 
         {/* Error */}
         {error && (
-          <div className="bk-error">
-            <span>⚠ {error}</span>
+          <div className="notice notice--error bk-error" role="alert" ref={errorRef}>
+            <Icon name="alert" className="notice__icon" />
+            <span className="notice__body">{error}</span>
 
-            <button onClick={() => setError('')}>
+            <button
+              type="button"
+              className="notice__close"
+              aria-label="Dismiss"
+              onClick={() => setError('')}
+            >
               ×
             </button>
           </div>
@@ -464,36 +501,46 @@ export function CompanyInterviewBooking() {
         =================================================== */}
 
         {step === 1 && (
-          <div className="bk-step-content">
+          <div className="bk-step-content" key="step-1">
 
-            <h2 className="bk-section-title">
-              Choose Your Interviewer
-            </h2>
+            <div className="bk-step-head">
+              <h2 className="bk-section-title serif">
+                Who would you like in the room?
+              </h2>
 
-            <p className="bk-section-sub">
-              Select an interviewer, then pick an available time slot.
-            </p>
+              <p className="bk-section-sub">
+                Select an interviewer, then pick an available time slot.
+              </p>
+            </div>
 
             {isLoadingData ? (
-              <div className="bk-loading">
-                Loading interviewers…
+              <div className="bk-interviewer-grid" aria-busy="true" aria-label="Loading interviewers">
+                {[0, 1, 2].map((n) => (
+                  <div key={n} className="skeleton bk-skeleton" />
+                ))}
               </div>
             ) : interviewers.length === 0 ? (
-              <p className="bk-empty">
-                No interviewers are available right now. Please check
-                back soon.
-              </p>
+              <div className="bk-empty">
+                <p className="serif bk-empty__title">No one's free right now.</p>
+                <p>
+                  No interviewers are available right now. Please check back
+                  soon.
+                </p>
+              </div>
             ) : (
               <div className="bk-interviewer-grid">
 
-                {interviewers.map((interviewer) => (
+                {interviewers.map((interviewer, index) => (
                   <button
+                    type="button"
                     key={interviewer.uuid}
-                    className={`bk-interviewer-card anim-up ${
+                    className={`bk-interviewer-card ${
                       selectedInterviewer?.uuid === interviewer.uuid
                         ? 'selected'
                         : ''
                     }`}
+                    aria-pressed={selectedInterviewer?.uuid === interviewer.uuid}
+                    style={{ ['--i' as string]: Math.min(index, 6) }}
                     onClick={() =>
                       handleSelectInterviewer(interviewer)
                     }
@@ -505,7 +552,7 @@ export function CompanyInterviewBooking() {
                     />
 
                     <div className="bk-interviewer-info">
-                      <h4>{interviewer.name}</h4>
+                      <h3>{interviewer.name}</h3>
 
                       <span className="bk-company">
                         {interviewer.company}
@@ -520,12 +567,15 @@ export function CompanyInterviewBooking() {
                       </p>
                     </div>
 
-                    {selectedInterviewer?.uuid ===
-                      interviewer.uuid && (
-                      <div className="bk-selected-badge">
-                        Selected
-                      </div>
-                    )}
+                    <span className="bk-selected-badge" aria-hidden="true">
+                      {selectedInterviewer?.uuid === interviewer.uuid ? (
+                        <>
+                          <Icon name="check" size={14} /> Selected
+                        </>
+                      ) : (
+                        'Select'
+                      )}
+                    </span>
                   </button>
                 ))}
 
@@ -535,69 +585,60 @@ export function CompanyInterviewBooking() {
             {/* Slots */}
 
             {selectedInterviewer && (
-              <div className="bk-slots-section">
+              <section className="bk-slots-section" aria-labelledby="bk-slots-title">
 
-                <h3 className="bk-slots-title">
-                  Available Slots —{' '}
+                <h3 id="bk-slots-title" className="bk-slots-title">
+                  Times with{' '}
                   <span>
                     {selectedInterviewer.name}
                   </span>
+                  <span className="bk-slots-tz">All times IST</span>
                 </h3>
 
-                {slots.filter(
-                  (slot) =>
-                    slot.interviewer_uuid ===
-                    selectedInterviewer.uuid
-                ).length === 0 ? (
-                  <p className="bk-empty">
+                {interviewerSlots.length === 0 ? (
+                  <p className="bk-empty bk-empty--inline">
                     No slots available for this interviewer right now.
                     Try another.
                   </p>
                 ) : (
-                  <div className="bk-slots-grid">
+                  <div className="bk-slot-days">
+                    {slotsByDay.map((group) => (
+                      <div key={group.day} className="bk-slot-day">
+                        <p className="bk-slot-date">{group.day}</p>
+                        <div className="bk-slots-grid">
+                          {group.items.map((slot) => (
+                            <button
+                              type="button"
+                              key={slot.uuid}
+                              className="bk-slot-card"
+                              onClick={() =>
+                                handleSelectSlot(slot)
+                              }
+                            >
+                              <span className="bk-slot-time">
+                                {formatSlotTime(
+                                  slot.start_time,
+                                  slot.timezone
+                                )}{' '}
+                                –{' '}
+                                {formatSlotTime(
+                                  slot.end_time,
+                                  slot.timezone
+                                )}
+                              </span>
 
-                    {slots.filter(
-                      (slot) =>
-                        slot.interviewer_uuid ===
-                        selectedInterviewer.uuid
-                    ).map((slot) => (
-                      <button
-                        key={slot.uuid}
-                        className="bk-slot-card anim-up"
-                        onClick={() =>
-                          handleSelectSlot(slot)
-                        }
-                      >
-                        <span className="bk-slot-date">
-                          {formatSlotDate(
-                            slot.start_time,
-                            slot.timezone
-                          )}
-                        </span>
-
-                        <span className="bk-slot-time">
-                          {formatSlotTime(
-                            slot.start_time,
-                            slot.timezone
-                          )}{' '}
-                          –{' '}
-                          {formatSlotTime(
-                            slot.end_time,
-                            slot.timezone
-                          )}{' '}
-                          IST
-                        </span>
-
-                        <span className="bk-slot-action">
-                          Select →
-                        </span>
-                      </button>
+                              <span className="bk-slot-action" aria-hidden="true">
+                                <Icon name="arrow-right" size={16} />
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     ))}
-
                   </div>
                 )}
 
-              </div>
+              </section>
             )}
 
           </div>
@@ -610,224 +651,241 @@ export function CompanyInterviewBooking() {
         {step === 2 &&
           selectedInterviewer &&
           selectedSlot && (
-            <div className="bk-step-content">
+            <div className="bk-step-content bk-two-col" key="step-2">
 
-              <h2 className="bk-section-title">
-                Interview Details
-              </h2>
+              <div>
+                <div className="bk-step-head">
+                  <h2 className="bk-section-title serif">
+                    Tell them what you're walking into.
+                  </h2>
 
-              <p className="bk-section-sub">
-                Tell us about the interview. This helps your
-                interviewer prepare for you.
-              </p>
+                  <p className="bk-section-sub">
+                    Tell us about the interview. This helps your
+                    interviewer prepare for you.
+                  </p>
+                </div>
 
-              <div className="bk-booking-summary-mini">
-                <span>
-                  📅{' '}
+                <form
+                  className="bk-config-form"
+                  onSubmit={handleConfigSubmit}
+                >
+
+                  {/* Target role */}
+
+                  <div className="field">
+                    <label className="field__label" htmlFor="bk-role">
+                      Target role
+                    </label>
+
+                    <input
+                      id="bk-role"
+                      className="input"
+                      type="text"
+                      placeholder="e.g. Frontend Developer, SDE-1, Full Stack Intern…"
+                      value={config.targetRole}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          targetRole: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+
+                  {/* Domain */}
+
+                  <div className="field">
+                    <label className="field__label" htmlFor="bk-domain">
+                      Domain or track
+                    </label>
+
+                    <select
+                      id="bk-domain"
+                      className="select"
+                      value={config.domain}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          domain: e.target.value,
+                        })
+                      }
+                    >
+                      <option>
+                        Frontend Development
+                      </option>
+
+                      <option>
+                        Backend Development
+                      </option>
+
+                      <option>
+                        Full Stack
+                      </option>
+
+                      <option>
+                        DSA + Problem Solving
+                      </option>
+
+                      <option>
+                        System Design
+                      </option>
+
+                      <option>
+                        HR + Communication
+                      </option>
+
+                      <option>
+                        Mobile Development
+                      </option>
+
+                      <option>
+                        DevOps / Cloud
+                      </option>
+                    </select>
+                  </div>
+
+                  {/* Difficulty */}
+
+                  <div className="field">
+                    <p className="field__label" id="bk-difficulty-label">
+                      Difficulty level
+                    </p>
+
+                    <div className="segmented segmented--buttons" role="group" aria-labelledby="bk-difficulty-label">
+
+                      {(
+                        ['Easy', 'Medium', 'Hard'] as const
+                      ).map((difficulty) => (
+                        <button
+                          key={difficulty}
+                          type="button"
+                          className="segmented__option"
+                          aria-pressed={config.difficulty === difficulty}
+                          onClick={() =>
+                            setConfig({
+                              ...config,
+                              difficulty,
+                            })
+                          }
+                        >
+                          {difficulty}
+                        </button>
+                      ))}
+
+                    </div>
+                  </div>
+
+                  {/* Job description */}
+
+                  <div className="field">
+                    <label className="field__label" htmlFor="bk-jd">
+                      Job description
+                      <span className="field__optional">optional</span>
+                    </label>
+
+                    <textarea
+                      id="bk-jd"
+                      className="textarea"
+                      rows={5}
+                      placeholder="Paste the job description here. Your interviewer will tailor questions to this role."
+                      value={config.jobDescription}
+                      onChange={(e) =>
+                        setConfig({
+                          ...config,
+                          jobDescription: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  {/* Resume */}
+
+                  <div className="field">
+                    <span className="field__label">
+                      Resume
+                      <span className="field__optional">optional · PDF or DOC, max 5 MB</span>
+                    </span>
+
+                    <label className="upload">
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) =>
+                          setResumeFile(
+                            e.target.files?.[0] || null
+                          )
+                        }
+                      />
+                      <span className="upload__icon" aria-hidden="true">
+                        <Icon name="upload" size={20} />
+                      </span>
+                      <span className="upload__text">
+                        <strong>
+                          {resumeFile ? resumeFile.name : 'Upload your resume'}
+                        </strong>
+                        <span>PDF, DOC or DOCX</span>
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Actions */}
+
+                  <div className="bk-form-actions">
+
+                    <button
+                      type="button"
+                      className="btn btn--ghost"
+                      onClick={() => setStep(1)}
+                    >
+                      <Icon name="arrow-left" size={18} /> Back
+                    </button>
+
+                    <button
+                      type="submit"
+                      className="btn btn--dusk"
+                    >
+                      Continue to review
+                      <span className="btn__arrow" aria-hidden="true">→</span>
+                    </button>
+
+                  </div>
+
+                </form>
+              </div>
+
+              <aside className="bk-ticket bk-ticket--mini" aria-label="Your slot">
+                <p className="bk-ticket__label">Your slot</p>
+                <div className="bk-review-header">
+                  <Avatar
+                    src={selectedInterviewer.avatar_url}
+                    name={selectedInterviewer.name}
+                    className="bk-avatar-sm"
+                  />
+                  <div>
+                    <h4>{selectedInterviewer.name}</h4>
+                    <span>{selectedInterviewer.company}</span>
+                  </div>
+                </div>
+                <p className="bk-ticket__when">
+                  <Icon name="calendar" size={18} />
                   {formatSlotDate(
                     selectedSlot.start_time,
                     selectedSlot.timezone
                   )}
-                </span>
-
-                <span>
-                  ⏰{' '}
+                </p>
+                <p className="bk-ticket__when">
+                  <Icon name="clock" size={18} />
                   {formatSlotTime(
                     selectedSlot.start_time,
                     selectedSlot.timezone
                   )}{' '}
                   IST
-                </span>
-
-                <span>
-                  👤 {selectedInterviewer.name}
-                </span>
-              </div>
-
-              <form
-                className="bk-config-form"
-                onSubmit={handleConfigSubmit}
-              >
-
-                {/* Target role */}
-
-                <div className="bk-field">
-                  <label>
-                    Target Role <span className="req">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    placeholder="e.g. Frontend Developer, SDE-1, Full Stack Intern..."
-                    value={config.targetRole}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        targetRole: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </div>
-
-                {/* Domain */}
-
-                <div className="bk-field">
-                  <label>
-                    Domain / Track{' '}
-                    <span className="req">*</span>
-                  </label>
-
-                  <select
-                    value={config.domain}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        domain: e.target.value,
-                      })
-                    }
-                  >
-                    <option>
-                      Frontend Development
-                    </option>
-
-                    <option>
-                      Backend Development
-                    </option>
-
-                    <option>
-                      Full Stack
-                    </option>
-
-                    <option>
-                      DSA + Problem Solving
-                    </option>
-
-                    <option>
-                      System Design
-                    </option>
-
-                    <option>
-                      HR + Communication
-                    </option>
-
-                    <option>
-                      Mobile Development
-                    </option>
-
-                    <option>
-                      DevOps / Cloud
-                    </option>
-                  </select>
-                </div>
-
-                {/* Difficulty */}
-
-                <div className="bk-field">
-                  <label>
-                    Difficulty Level{' '}
-                    <span className="req">*</span>
-                  </label>
-
-                  <div className="bk-difficulty-group">
-
-                    {(
-                      ['Easy', 'Medium', 'Hard'] as const
-                    ).map((difficulty) => (
-                      <button
-                        key={difficulty}
-                        type="button"
-                        className={`bk-diff-btn ${
-                          config.difficulty === difficulty
-                            ? 'active'
-                            : ''
-                        } diff-${difficulty.toLowerCase()}`}
-                        onClick={() =>
-                          setConfig({
-                            ...config,
-                            difficulty,
-                          })
-                        }
-                      >
-                        {difficulty}
-                      </button>
-                    ))}
-
-                  </div>
-                </div>
-
-                {/* Job description */}
-
-                <div className="bk-field">
-                  <label>
-                    Job Description{' '}
-                    <span className="bk-optional">
-                      (optional)
-                    </span>
-                  </label>
-
-                  <textarea
-                    rows={5}
-                    placeholder="Paste the job description here. Your interviewer will tailor questions to this role."
-                    value={config.jobDescription}
-                    onChange={(e) =>
-                      setConfig({
-                        ...config,
-                        jobDescription: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                {/* Resume */}
-
-                <div className="bk-field">
-                  <label>
-                    Upload Resume{' '}
-                    <span className="bk-optional">
-                      (optional · PDF or DOC, max 5 MB)
-                    </span>
-                  </label>
-
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) =>
-                      setResumeFile(
-                        e.target.files?.[0] || null
-                      )
-                    }
-                  />
-
-                  {resumeFile && (
-                    <span className="bk-file-name">
-                      📎 {resumeFile.name}
-                    </span>
-                  )}
-                </div>
-
-                {/* Actions */}
-
-                <div className="bk-form-actions">
-
-                  <button
-                    type="button"
-                    className="bk-btn-outline"
-                    onClick={() => setStep(1)}
-                  >
-                    ← Back
-                  </button>
-
-                  <button
-                    type="submit"
-                    className="bk-btn-primary"
-                  >
-                    Continue to Review →
-                  </button>
-
-                </div>
-
-              </form>
+                </p>
+                <button type="button" className="text-button bk-ticket__change" onClick={() => setStep(1)}>
+                  Change time
+                </button>
+              </aside>
             </div>
           )}
 
@@ -838,18 +896,20 @@ export function CompanyInterviewBooking() {
         {step === 3 &&
           selectedInterviewer &&
           selectedSlot && (
-            <div className="bk-step-content bk-review">
+            <div className="bk-step-content bk-review" key="step-3">
 
-              <h2 className="bk-section-title">
-                Review & Pay
-              </h2>
+              <div className="bk-step-head bk-step-head--center">
+                <h2 className="bk-section-title serif">
+                  One look before you book.
+                </h2>
 
-              <p className="bk-section-sub">
-                Confirm your details below, then complete payment
-                to lock your slot.
-              </p>
+                <p className="bk-section-sub">
+                  Confirm your details below, then complete payment
+                  to lock your slot.
+                </p>
+              </div>
 
-              <div className="bk-review-card anim-up">
+              <div className="bk-ticket">
 
                 <div className="bk-review-header">
 
@@ -871,23 +931,23 @@ export function CompanyInterviewBooking() {
 
                 </div>
 
-                <div className="bk-review-rows">
+                <dl className="bk-review-rows">
 
                   <div className="bk-review-row">
-                    <span>Date</span>
+                    <dt>Date</dt>
 
-                    <strong>
+                    <dd>
                       {formatSlotDate(
                         selectedSlot.start_time,
                         selectedSlot.timezone
                       )}
-                    </strong>
+                    </dd>
                   </div>
 
                   <div className="bk-review-row">
-                    <span>Time</span>
+                    <dt>Time</dt>
 
-                    <strong>
+                    <dd>
                       {formatSlotTime(
                         selectedSlot.start_time,
                         selectedSlot.timezone
@@ -898,79 +958,84 @@ export function CompanyInterviewBooking() {
                         selectedSlot.timezone
                       )}{' '}
                       IST
-                    </strong>
+                    </dd>
                   </div>
 
                   <div className="bk-review-row">
-                    <span>Target Role</span>
+                    <dt>Target role</dt>
 
-                    <strong>
+                    <dd>
                       {config.targetRole}
-                    </strong>
+                    </dd>
                   </div>
 
                   <div className="bk-review-row">
-                    <span>Domain</span>
+                    <dt>Domain</dt>
 
-                    <strong>
+                    <dd>
                       {config.domain}
-                    </strong>
+                    </dd>
                   </div>
 
                   <div className="bk-review-row">
-                    <span>Difficulty</span>
+                    <dt>Difficulty</dt>
 
-                    <strong>
+                    <dd>
                       {config.difficulty}
-                    </strong>
+                    </dd>
                   </div>
 
                   {resumeFile && (
                     <div className="bk-review-row">
-                      <span>Resume</span>
+                      <dt>Resume</dt>
 
-                      <strong>
-                        📎 {resumeFile.name}
-                      </strong>
+                      <dd>
+                        {resumeFile.name}
+                      </dd>
                     </div>
                   )}
 
-                </div>
+                </dl>
 
                 <div className="bk-price-row">
                   <span>
-                    Company-Based Interview · 1 session
+                    Company-based interview · 1 session
                   </span>
 
-                  <span className="bk-price">
+                  <span className="bk-price serif">
                     ₹1,199
                   </span>
                 </div>
 
                 <p className="bk-payment-note">
-                  Payment is processed securely. Your slot is
-                  confirmed after successful payment.
+                  <Icon name="lock" size={14} /> Payment is processed securely.
+                  Your slot is confirmed after successful payment.
                 </p>
 
                 <div className="bk-form-actions">
 
                   <button
-                    className="bk-btn-outline"
+                    type="button"
+                    className="btn btn--ghost"
                     onClick={() => setStep(2)}
                   >
-                    ← Edit Details
+                    <Icon name="arrow-left" size={18} /> Edit details
                   </button>
 
                   <button
-                    className="bk-btn-pay"
+                    type="button"
+                    className="btn btn--amber"
                     onClick={handlePayClick}
                     disabled={isProcessing}
                   >
-                    {isProcessing
-                      ? 'Processing…'
-                      : hasFailedAttempt
-                        ? 'Retry Payment ₹1,199'
-                        : 'Pay ₹1,199 & Confirm'}
+                    {isProcessing ? (
+                      <>
+                        Opening secure payment
+                        <span className="breath" aria-hidden="true"><span /><span /><span /></span>
+                      </>
+                    ) : hasFailedAttempt
+                      ? 'Try payment again · ₹1,199'
+                      : 'Pay ₹1,199 & confirm'}
                   </button>
 
                 </div>
@@ -984,10 +1049,10 @@ export function CompanyInterviewBooking() {
         =================================================== */}
 
         {step === 4 && confirmedBooking && (
-          <div className="bk-step-content bk-confirmed">
+          <div className="bk-step-content bk-confirmed" key="step-4">
 
-            <h2>
-              Interview Confirmed!
+            <h2 className="bk-section-title serif">
+              You're on. <em>Someone's preparing for it now.</em>
             </h2>
 
             <p className="bk-confirm-sub">
@@ -999,7 +1064,7 @@ export function CompanyInterviewBooking() {
               before the session.
             </p>
 
-            <div className="bk-confirm-card anim-up">
+            <div className="bk-ticket">
 
               <div className="bk-review-header">
 
@@ -1021,23 +1086,23 @@ export function CompanyInterviewBooking() {
 
               </div>
 
-              <div className="bk-review-rows">
+              <dl className="bk-review-rows">
 
                 <div className="bk-review-row">
-                  <span>Date</span>
+                  <dt>Date</dt>
 
-                  <strong>
+                  <dd>
                     {formatSlotDate(
                       confirmedBooking.startTime,
                       confirmedBooking.timezone
                     )}
-                  </strong>
+                  </dd>
                 </div>
 
                 <div className="bk-review-row">
-                  <span>Time</span>
+                  <dt>Time</dt>
 
-                  <strong>
+                  <dd>
                     {formatSlotTime(
                       confirmedBooking.startTime,
                       confirmedBooking.timezone
@@ -1048,46 +1113,48 @@ export function CompanyInterviewBooking() {
                       confirmedBooking.timezone
                     )}{' '}
                     IST
-                  </strong>
+                  </dd>
                 </div>
 
                 <div className="bk-review-row">
-                  <span>Role</span>
+                  <dt>Role</dt>
 
-                  <strong>
+                  <dd>
                     {confirmedBooking.targetRole}
-                  </strong>
+                  </dd>
                 </div>
 
                 <div className="bk-review-row">
-                  <span>Domain</span>
+                  <dt>Domain</dt>
 
-                  <strong>
+                  <dd>
                     {confirmedBooking.domain}
-                  </strong>
+                  </dd>
                 </div>
 
                 <div className="bk-review-row">
-                  <span>Booking ID</span>
+                  <dt>Booking ID</dt>
 
-                  <strong>
+                  <dd>
                     {confirmedBooking.bookingId}
-                  </strong>
+                  </dd>
                 </div>
 
-              </div>
+              </dl>
 
             </div>
 
             <div className="bk-confirm-actions">
 
               <button
-                className="bk-btn-primary"
+                type="button"
+                className="btn btn--dusk"
                 onClick={() =>
                   navigate('/dashboard')
                 }
               >
-                Go to My Dashboard
+                Go to my dashboard
+                <span className="btn__arrow" aria-hidden="true">→</span>
               </button>
 
             </div>
@@ -1095,7 +1162,7 @@ export function CompanyInterviewBooking() {
           </div>
         )}
 
-      </div>
+      </main>
     </div>
   );
 }

@@ -10,6 +10,9 @@ import {
 } from "../axios/booking";
 import { getApiErrorMessage } from "../axios/data";
 import { useAuth } from "../context/useAuth";
+import { AppHeader } from "../components/AppHeader";
+import { Icon } from "../components/Icon";
+import { useReveal } from "../components/useReveal";
 import "../stylesheets/studentDashboard.css";
 
 type DashboardTab = "ai" | "company";
@@ -20,16 +23,16 @@ interface StatusStyle {
 }
 
 const STATUS_STYLES: Record<string, StatusStyle> = {
-  pending: { label: "Pending", className: "status-pending" },
-  in_progress: { label: "In Progress", className: "status-progress" },
-  confirmed: { label: "Confirmed", className: "status-confirmed" },
-  completed: { label: "Completed", className: "status-completed" },
-  cancelled: { label: "Cancelled", className: "status-cancelled" },
+  pending: { label: "Pending", className: "status--pending" },
+  in_progress: { label: "In Progress", className: "status--progress" },
+  confirmed: { label: "Confirmed", className: "status--confirmed" },
+  completed: { label: "Completed", className: "status--completed" },
+  cancelled: { label: "Cancelled", className: "status--cancelled" },
 };
 
 function getStatusStyle(status: string): StatusStyle {
   return (
-    STATUS_STYLES[status] ?? { label: status, className: "status-default" }
+    STATUS_STYLES[status] ?? { label: status, className: "status--default" }
   );
 }
 
@@ -114,6 +117,57 @@ function isCompanyInterviewReady(
   return true;
 }
 
+
+// ── Presentation helpers (derived only from the data above) ─────────────────
+
+function parseAIStart(scheduledAt: string | null): Date | null {
+  if (!scheduledAt) return null;
+  const date = new Date(
+    scheduledAt.includes("T") ? scheduledAt : scheduledAt.replace(" ", "T"),
+  );
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function parseCompanyStart(slotDate: string | null, startTime: string | null): Date | null {
+  if (!slotDate || !startTime) return null;
+  const date = new Date(`${slotDate.split("T")[0]}T${startTime}`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function dayParts(date: Date | null) {
+  if (!date) return { day: "—", month: "" };
+  return {
+    day: date.toLocaleDateString("en-IN", { day: "numeric" }),
+    month: date.toLocaleDateString("en-IN", { month: "short" }),
+  };
+}
+
+function greetingFor(hour: number) {
+  if (hour < 5) return "Still up";
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function isSameDay(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+interface NextUp {
+  kind: "ai" | "company";
+  id: string;
+  role: string;
+  detail: string;
+  start: Date;
+  readyNow: boolean;
+}
+
+const FINISHED = new Set(["completed", "cancelled"]);
+
 export function StudentDashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -134,6 +188,18 @@ export function StudentDashboard() {
   const [feedbackData, setFeedbackData] = useState<AIInterviewEvaluation | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
+
+  useReveal([isLoading, activeTab]);
+
+  // Close the feedback dialog with Escape.
+  useEffect(() => {
+    if (!feedbackModalId) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setFeedbackModalId(null);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [feedbackModalId]);
 
   useEffect(() => {
     let isActive = true;
@@ -194,60 +260,173 @@ export function StudentDashboard() {
     setFeedbackModalId(null);
   }
 
+  // ── What comes next, from the user's real interviews ─────────────────────
+  const now = new Date(currentTime);
+  const upcoming: NextUp[] = [
+    ...aiInterviews
+      .filter((interview) => !FINISHED.has(interview.status))
+      .map((interview) => ({
+        kind: "ai" as const,
+        id: interview.id,
+        role: interview.target_role,
+        detail: `Open Room · ${interview.domain} · ${interview.level}`,
+        start: parseAIStart(interview.scheduled_at),
+        readyNow: isInterviewReady(interview.scheduled_at),
+      })),
+    ...companyInterviews
+      .filter((interview) => !FINISHED.has(interview.status))
+      .map((interview) => ({
+        kind: "company" as const,
+        id: interview.id,
+        role: interview.target_role,
+        detail: `Real Room${interview.interviewer_name ? ` · with ${interview.interviewer_name}` : ""}${interview.interviewer_company ? `, ${interview.interviewer_company}` : ""}`,
+        start: parseCompanyStart(interview.slot_date, interview.start_time),
+        readyNow: isCompanyInterviewReady(
+          interview.slot_date,
+          interview.start_time,
+          interview.end_time,
+          currentTime,
+        ),
+      })),
+  ]
+    .filter((item): item is NextUp => item.start !== null)
+    .filter((item) => item.readyNow || item.start.getTime() > currentTime)
+    .sort((a, b) => {
+      if (a.readyNow !== b.readyNow) return a.readyNow ? -1 : 1;
+      return a.start.getTime() - b.start.getTime();
+    });
+
+  const nextUp = upcoming[0] ?? null;
+
+  function nextUpLine(item: NextUp) {
+    if (item.readyNow) {
+      return item.kind === "ai"
+        ? "It's time. You've done the work. Go ahead."
+        : "It's time — your interview is starting. The link's in your email.";
+    }
+    const minutesAway = (item.start.getTime() - currentTime) / 60000;
+    if (minutesAway <= 75) {
+      return "Not long now. Somewhere quiet, headphones if you have them.";
+    }
+    if (isSameDay(item.start, now)) {
+      return "It's today. You've done this. Go ahead.";
+    }
+    return `You're on for ${formatDate(item.start.toISOString())} at ${item.start.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}.`;
+  }
+
+  const firstName = user ? user.name.split(" ")[0] : "";
+
   return (
-    <div className="dashboard">
-      <header className="dashboard-navbar">
-        <div className="dashboard-navbar__inner">
-          <Link to="/" className="dashboard-navbar__brand">
-            Ahead<span>.</span>
-          </Link>
+    <div className="dashboard page">
+      <AppHeader crumb="Your interviews">
+        {user && (
+          <span className="app-header__greeting muted">
+            Signed in as {user.name.split(" ")[0]}
+          </span>
+        )}
+        <button
+          type="button"
+          className="btn btn--sm btn--ghost"
+          onClick={handleLogout}
+        >
+          Log out
+        </button>
+      </AppHeader>
 
-          <div className="dashboard-navbar__right">
-            {user && (
-              <span className="dashboard-navbar__greeting">
-                Good to see you, {user.name.split(" ")[0]}
-              </span>
-            )}
-            <button
-              type="button"
-              className="dashboard-navbar__logout"
-              onClick={handleLogout}
-            >
-              Log out
-            </button>
+      <main id="main" className="dashboard-main wrap wrap--wide">
+        <section className="dash-hero" aria-labelledby="dash-title">
+          <div className="dash-hero__copy">
+            <p className="eyebrow">{now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</p>
+            <h1 id="dash-title" className="dash-hero__title serif">
+              {greetingFor(now.getHours())}
+              {firstName ? <>, <em>{firstName}.</em></> : "."}
+            </h1>
+            <p className="dash-hero__lede muted">
+              Everything you've lined up, and everything you've already been
+              through — it's all here.
+            </p>
           </div>
-        </div>
-      </header>
 
-      <main className="dashboard-main">
-        <div className="dashboard-header">
-          <h1>Your interviews</h1>
-          <p>
-            Everything you've lined up, and everything you've already been
-            through — it's all here.
-          </p>
-        </div>
+          <div
+            className={`next-up ${nextUp ? `next-up--${nextUp.kind}` : "next-up--empty"}${nextUp?.readyNow ? " next-up--now" : ""}`}
+            aria-live="polite"
+          >
+            {isLoading ? (
+              <div className="next-up__loading">
+                <div className="skeleton" style={{ height: 14, width: "40%" }} />
+                <div className="skeleton" style={{ height: 32, width: "80%" }} />
+                <div className="skeleton" style={{ height: 14, width: "60%" }} />
+              </div>
+            ) : nextUp ? (
+              <>
+                <p className="next-up__label">
+                  {nextUp.readyNow ? "Now" : "Next up"}
+                </p>
+                <h2 className="next-up__role">{nextUp.role}</h2>
+                <p className="next-up__detail">{nextUp.detail}</p>
+                <p className="next-up__line serif">{nextUpLine(nextUp)}</p>
+                {nextUp.readyNow && nextUp.kind === "ai" && (
+                  <button
+                    type="button"
+                    className="btn btn--amber"
+                    onClick={() =>
+                      navigate(`/interview/ai/${nextUp.id}/prejoin-check`)
+                    }
+                  >
+                    Go ahead, you're ready
+                    <span className="btn__arrow" aria-hidden="true">→</span>
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="next-up__label">Nothing scheduled</p>
+                <h2 className="next-up__role serif">
+                  The Open Room's ready <em>when you are.</em>
+                </h2>
+                <p className="next-up__detail">
+                  Set up a practice run for any role, at a time that suits you.
+                </p>
+                <div className="next-up__actions">
+                  <Link to="/ai-interview-form" className="btn btn--amber">
+                    Set up a practice run
+                    <span className="btn__arrow" aria-hidden="true">→</span>
+                  </Link>
+                  <Link to="/company-interview-booking" className="link-arrow">
+                    Book the Real Room <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
 
-        <div className="dashboard-tabs" role="tablist">
+        <div className="dashboard-tabs" role="tablist" aria-label="Your interviews">
           <button
             type="button"
             role="tab"
+            id="tab-ai"
             aria-selected={activeTab === "ai"}
+            aria-controls="panel-interviews"
             className={`dashboard-tab ${activeTab === "ai" ? "active" : ""}`}
             onClick={() => setActiveTab("ai")}
           >
-            AI practice
+            <span className="dashboard-tab__room">Open Room</span>
+            <span className="dashboard-tab__name">AI practice</span>
             <span className="dashboard-tab__count">{aiInterviews.length}</span>
           </button>
 
           <button
             type="button"
             role="tab"
+            id="tab-company"
             aria-selected={activeTab === "company"}
-            className={`dashboard-tab ${activeTab === "company" ? "active" : ""}`}
+            aria-controls="panel-interviews"
+            className={`dashboard-tab dashboard-tab--real ${activeTab === "company" ? "active" : ""}`}
             onClick={() => setActiveTab("company")}
           >
-            Company interviews
+            <span className="dashboard-tab__room">Real Room</span>
+            <span className="dashboard-tab__name">Company interviews</span>
             <span className="dashboard-tab__count">
               {companyInterviews.length}
             </span>
@@ -255,55 +434,75 @@ export function StudentDashboard() {
         </div>
 
         {error && (
-          <p className="dashboard-error" role="alert">
+          <p className="notice notice--error dashboard-error" role="alert">
             {error}
           </p>
         )}
 
+        <section
+          id="panel-interviews"
+          role="tabpanel"
+          aria-labelledby={activeTab === "ai" ? "tab-ai" : "tab-company"}
+          className="dashboard-panel"
+          key={activeTab}
+        >
         {isLoading ? (
-          <div className="dashboard-loading">
-            One moment — pulling these up…
+          <div className="waiting">
+            <span className="breath" aria-hidden="true"><span /><span /><span /></span>
+            <p>One moment — pulling these up…</p>
           </div>
         ) : activeTab === "ai" ? (
           aiInterviews.length === 0 ? (
             <div className="dashboard-empty">
-              <p>
-                No practice runs yet. Whenever you're ready, we'll set one up
-                together.
+              <p className="serif dashboard-empty__title">No practice runs yet.</p>
+              <p className="muted">
+                Whenever you're ready, we'll set one up together.
               </p>
-              <Link to="/ai-interview-form" className="btn-primary">
+              <Link to="/ai-interview-form" className="btn">
                 Set up a practice run
+                <span className="btn__arrow" aria-hidden="true">→</span>
               </Link>
             </div>
           ) : (
-            <div className="dashboard-list">
-              {aiInterviews.map((interview) => {
+            <ul className="dashboard-list">
+              {aiInterviews.map((interview, index) => {
                 const status = getStatusStyle(interview.status);
                 const canStart = isInterviewReady(interview.scheduled_at);
+                const when = dayParts(parseAIStart(interview.scheduled_at));
 
                 return (
-                  <div key={interview.id} className="dashboard-card">
-                    <div className="dashboard-card__main">
+                  <li
+                    key={interview.id}
+                    className={`dashboard-row${canStart && interview.status !== "completed" ? " dashboard-row--ready" : ""}`}
+                    data-reveal
+                    style={{ ["--i" as string]: Math.min(index, 6) }}
+                  >
+                    <div className="dashboard-row__date" aria-hidden="true">
+                      <span className="dashboard-row__day">{when.day}</span>
+                      <span className="dashboard-row__month">{when.month}</span>
+                    </div>
+
+                    <div className="dashboard-row__main">
                       <h3>{interview.target_role}</h3>
 
-                      <p className="dashboard-card__domain">
+                      <p className="dashboard-row__domain">
                         {interview.domain} · {interview.level}
                       </p>
 
-                      <p className="dashboard-card__meta">
+                      <p className="dashboard-row__meta">
                         {interview.scheduled_at
                           ? `You're on for ${formatDate(interview.scheduled_at)} at ${formatTime(interview.scheduled_at)}`
                           : "Time not set yet"}
                       </p>
 
-                      <p className="dashboard-card__applied">
+                      <p className="dashboard-row__applied">
                         You applied {formatDate(interview.created_at)}
                       </p>
                     </div>
 
-                    <div className="dashboard-card__actions">
+                    <div className="dashboard-row__actions">
                       <span
-                        className={`dashboard-status ${status.className}`}
+                        className={`status ${status.className}`}
                       >
                         {status.label}
                       </span>
@@ -311,7 +510,7 @@ export function StudentDashboard() {
                       {canStart && interview.status !== "completed" && (
                         <button
                           type="button"
-                          className="dashboard-start-btn"
+                          className="btn btn--amber btn--sm"
                           onClick={() =>
                             navigate(
                               `/interview/ai/${interview.id}/prejoin-check`,
@@ -319,7 +518,7 @@ export function StudentDashboard() {
                           }
                         >
                           Go ahead, you're ready
-                          <span>→</span>
+                          <span className="btn__arrow" aria-hidden="true">→</span>
                         </button>
                       )}
 
@@ -327,31 +526,32 @@ export function StudentDashboard() {
                         interview.has_feedback && (
                           <button
                             type="button"
-                            className="dashboard-feedback-btn"
+                            className="btn btn--ghost btn--sm"
                             onClick={() => openFeedback(interview.id)}
                           >
                             See how it went
                           </button>
                         )}
                     </div>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )
         ) : companyInterviews.length === 0 ? (
-          <div className="dashboard-empty">
-            <p>
-              No company interviews yet. When you find one worth booking, it'll
-              show up here.
+          <div className="dashboard-empty dashboard-empty--real">
+            <p className="serif dashboard-empty__title">No company interviews yet.</p>
+            <p className="muted">
+              When you find one worth booking, it'll show up here.
             </p>
-            <Link to="/company-interview-booking" className="btn-primary">
+            <Link to="/company-interview-booking" className="btn btn--dusk">
               Book a company interview
+              <span className="btn__arrow" aria-hidden="true">→</span>
             </Link>
           </div>
         ) : (
-          <div className="dashboard-list">
-            {companyInterviews.map((interview) => {
+          <ul className="dashboard-list">
+            {companyInterviews.map((interview, index) => {
               const status = getStatusStyle(interview.status);
 
               const canShowLinkMessage = isCompanyInterviewReady(
@@ -365,17 +565,29 @@ export function StudentDashboard() {
                 interview.status === "completed" ||
                 interview.status === "cancelled";
 
+              const when = dayParts(parseCompanyStart(interview.slot_date, interview.start_time));
+
               return (
-                <div key={interview.id} className="dashboard-card">
-                  <div className="dashboard-card__main">
+                <li
+                  key={interview.id}
+                  className="dashboard-row dashboard-row--real"
+                  data-reveal
+                  style={{ ["--i" as string]: Math.min(index, 6) }}
+                >
+                  <div className="dashboard-row__date" aria-hidden="true">
+                    <span className="dashboard-row__day">{when.day}</span>
+                    <span className="dashboard-row__month">{when.month}</span>
+                  </div>
+
+                  <div className="dashboard-row__main">
                     <h3>{interview.target_role}</h3>
 
-                    <p className="dashboard-card__domain">
+                    <p className="dashboard-row__domain">
                       {interview.domain} · {interview.level}
                     </p>
 
                     {interview.interviewer_name && (
-                      <p className="dashboard-card__interviewer">
+                      <p className="dashboard-row__interviewer">
                         With {interview.interviewer_name}
                         {interview.interviewer_company
                           ? ` · ${interview.interviewer_company}`
@@ -383,30 +595,27 @@ export function StudentDashboard() {
                       </p>
                     )}
 
-                    <p className="dashboard-card__meta">
+                    <p className="dashboard-row__meta">
                       {interview.slot_date
                         ? `${formatDate(interview.slot_date)} · ${formatSlotTime(interview.start_time)} – ${formatSlotTime(interview.end_time)}`
                         : "Time not set yet"}
                     </p>
 
-                    <p className="dashboard-card__applied">
+                    <p className="dashboard-row__applied">
                       You applied {formatDate(interview.created_at)}
                     </p>
                   </div>
 
-                  <div className="dashboard-card__actions">
+                  <div className="dashboard-row__actions">
                     <span
-                      className={`dashboard-status ${status.className}`}
+                      className={`status ${status.className}`}
                     >
                       {status.label}
                     </span>
 
                     {canShowLinkMessage && !interviewFinished && (
-                      <div className="dashboard-company-link-message">
-                        <span className="dashboard-company-link-message__icon">
-                          ✓
-                        </span>
-
+                      <div className="dashboard-company-link-message" role="status">
+                        <Icon name="check" size={18} />
                         <span>
                           <strong>It's time — your interview is starting.</strong>
                           <br />
@@ -416,54 +625,71 @@ export function StudentDashboard() {
                       </div>
                     )}
                   </div>
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
+        </section>
       </main>
 
       {feedbackModalId && (
-        <div className="feedback-modal-overlay" onClick={closeFeedback}>
+        <div className="overlay" onClick={closeFeedback}>
           <div
-            className="feedback-modal"
+            className="dialog feedback"
             role="dialog"
             aria-modal="true"
+            aria-labelledby="feedback-title"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
-              className="feedback-modal__close"
+              className="dialog__close"
               aria-label="Close"
               onClick={closeFeedback}
+              autoFocus
             >
-              ×
+              <Icon name="close" size={18} />
             </button>
 
             {feedbackLoading ? (
-              <div className="feedback-modal__loading">
-                One moment — going through your notes…
+              <div className="waiting">
+                <span className="breath" aria-hidden="true"><span /><span /><span /></span>
+                <p>One moment — going through your notes…</p>
               </div>
             ) : feedbackError ? (
-              <p className="feedback-modal__error">{feedbackError}</p>
+              <p className="notice notice--error" role="alert">{feedbackError}</p>
             ) : feedbackData ? (
               <>
-                <h2 className="feedback-modal__title">How it went</h2>
+                <p className="eyebrow">Your notes</p>
+                <h2 id="feedback-title" className="feedback__title serif">
+                  How did it <em>actually go?</em>
+                </h2>
 
-                <div className="feedback-modal__score-row">
-                  <span className="feedback-modal__score">
-                    {Math.round(feedbackData.overallScore)}
-                    <span className="feedback-modal__score-max">/100</span>
-                  </span>
-
-                  <span
-                    className={`feedback-modal__badge feedback-rec-${feedbackData.recommendation}`}
+                <div className="feedback__score-row">
+                  <div
+                    className="feedback__dial"
+                    style={{ ["--score" as string]: Math.round(feedbackData.overallScore) }}
                   >
-                    {AI_RECOMMENDATION_LABEL[feedbackData.recommendation]}
-                  </span>
+                    <span className="feedback__score">
+                      {Math.round(feedbackData.overallScore)}
+                    </span>
+                    <span className="feedback__score-max">of 100</span>
+                  </div>
+
+                  <div className="feedback__verdict">
+                    <span
+                      className={`feedback__badge feedback-rec-${feedbackData.recommendation}`}
+                    >
+                      {AI_RECOMMENDATION_LABEL[feedbackData.recommendation]}
+                    </span>
+                    <p className="feedback__summary">
+                      {feedbackData.detailedFeedback}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="feedback-modal__metrics">
+                <div className="feedback__metrics">
                   {(
                     [
                       ["Technical", feedbackData.technicalScore],
@@ -472,57 +698,59 @@ export function StudentDashboard() {
                       ["Confidence", feedbackData.confidenceScore],
                       ["Relevance", feedbackData.relevanceScore],
                     ] as [string, number][]
-                  ).map(([label, score]) => (
-                    <div className="feedback-modal__metric" key={label}>
-                      <div className="feedback-modal__metric-bar">
-                        <div
-                          className="feedback-modal__metric-fill"
-                          style={{ width: `${score}%` }}
-                        />
-                      </div>
-                      <div className="feedback-modal__metric-label">
+                  ).map(([label, score], index) => (
+                    <div className="feedback__metric" key={label}>
+                      <div className="feedback__metric-label">
                         <span>{label}</span>
                         <span>{Math.round(score)}</span>
+                      </div>
+                      <div className="feedback__metric-bar">
+                        <div
+                          className="feedback__metric-fill"
+                          style={{ width: `${score}%`, ["--i" as string]: index }}
+                        />
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <p className="feedback-modal__summary">
-                  {feedbackData.detailedFeedback}
-                </p>
-
+                <div className="feedback__lists">
                 {feedbackData.strengths.length > 0 && (
-                  <div className="feedback-modal__section">
-                    <div className="feedback-modal__section-title">
+                  <div className="feedback__section">
+                    <h3 className="feedback__section-title">
                       What you did well
-                    </div>
+                    </h3>
+                    <ul>
                     {feedbackData.strengths.map((s, i) => (
-                      <div
+                      <li
                         key={i}
-                        className="feedback-modal__item feedback-modal__item--positive"
+                        className="feedback__item feedback__item--positive"
                       >
-                        ✓ {s}
-                      </div>
+                        {s}
+                      </li>
                     ))}
+                    </ul>
                   </div>
                 )}
 
                 {feedbackData.areasForImprovement.length > 0 && (
-                  <div className="feedback-modal__section">
-                    <div className="feedback-modal__section-title">
+                  <div className="feedback__section">
+                    <h3 className="feedback__section-title">
                       Where to focus next
-                    </div>
+                    </h3>
+                    <ul>
                     {feedbackData.areasForImprovement.map((w, i) => (
-                      <div
+                      <li
                         key={i}
-                        className="feedback-modal__item feedback-modal__item--warn"
+                        className="feedback__item feedback__item--next"
                       >
-                        • {w}
-                      </div>
+                        {w}
+                      </li>
                     ))}
+                    </ul>
                   </div>
                 )}
+                </div>
               </>
             ) : null}
           </div>

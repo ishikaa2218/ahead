@@ -8,6 +8,8 @@ import {
   type AIInterviewApplicationPayload,
 } from "../axios/booking";
 import { getApiErrorMessage } from "../axios/data";
+import { AppHeader } from "../components/AppHeader";
+import { Icon } from "../components/Icon";
 import "../stylesheets/aiInterviewForm.css";
 
 type Difficulty = "Easy" | "Medium" | "Hard";
@@ -62,6 +64,25 @@ const INTERVIEW_TYPES = [
 
 const QUESTION_COUNTS = [5, 8, 10];
 
+// Shown on the page only; the amount charged is always set by the server.
+const MODE_PRICE_LABEL: Record<InterviewMode, string> = {
+  Text: "₹99",
+  Audio: "₹199",
+};
+
+function formatScheduled(value: string) {
+  if (!value) return "Not chosen yet";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("en-IN", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function AIInterviewForm() {
   const navigate = useNavigate();
 
@@ -110,7 +131,7 @@ export function AIInterviewForm() {
         description: order.description,
         order_id: order.orderId,
         prefill: order.prefill,
-        theme: { color: "#6c4cff" },
+        theme: { color: "#4a3b57" },
         handler: (response) => {
           verifyAIInterviewPayment({
             ...payload,
@@ -339,426 +360,402 @@ export function AIInterviewForm() {
     );
   }
 
+  const price = MODE_PRICE_LABEL[config.interviewMode];
+
   return (
-    <div className="ai-page">
-      <nav className="ai-navbar">
-        <button
-          className="ai-logo"
-          onClick={() => navigate("/")}
-        >
-          Ahead<span>.</span>
-        </button>
+    <div className="ai-page open-room page">
+      <AppHeader crumb="The Open Room" onBrandClick={() => navigate("/")}>
+        <span className="ai-header-note">
+          <Icon name="lock" size={16} /> Your answers stay private
+        </span>
+      </AppHeader>
 
-        <div className="ai-navbar-label">
-          AI Interview
-        </div>
-      </nav>
-
-      <main className="ai-container">
-        <div className="ai-hero">
-          <div className="ai-hero-badge">
-            ✦ AI MOCK INTERVIEW
-          </div>
-
-          <h1>
-            Practice like it's
-            <br />
-            <span>the real thing.</span>
+      <main id="main" className="wrap ai-container">
+        <header className="ai-hero">
+          <p className="eyebrow">The Open Room · AI interview</p>
+          <h1 className="ai-hero__title serif">
+            Set the room up <em>the way you need it.</em>
           </h1>
-
-          <p>
-            Configure your interview and let AI challenge you
-            with questions tailored to your role, experience,
-            and goals.
+          <p className="ai-hero__lede">
+            Tell us what you're practising for. Maya, your AI interviewer, will
+            shape the questions around your role, your track and the level you
+            expect.
           </p>
-        </div>
+        </header>
 
-        <form
-          className="ai-form-card"
-          onSubmit={handleSubmit}
-        >
-          <div className="ai-form-heading">
-            <div>
-              <h2>Set up your interview</h2>
-
-              <p>
-                Tell us what you want to practice.
-              </p>
-            </div>
-
-            <div className="ai-step-badge">
-              STEP 01
-            </div>
-          </div>
-
-          <div className="ai-divider" />
-
-          {/* Target Role */}
-
-          <div className="ai-field">
-            <label>
-              Target Role
-              <span>*</span>
-            </label>
-
-            <input
-              type="text"
-              placeholder="e.g. Frontend Developer, SDE-1, Full Stack Intern..."
-              value={config.targetRole}
-              onChange={(event) =>
-                updateConfig(
-                  "targetRole",
-                  event.target.value,
-                )
-              }
-              required
-            />
-          </div>
-
-          {/* Domain */}
-
-          <div className="ai-field">
-            <label>
-              Domain / Track
-              <span>*</span>
-            </label>
-
-            <select
-              value={config.domain}
-              onChange={(event) =>
-                updateConfig(
-                  "domain",
-                  event.target.value,
-                )
-              }
-            >
-              {DOMAINS.map((domain) => (
-                <option key={domain} value={domain}>
-                  {domain}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Interview Type */}
-
-          <div className="ai-field">
-            <label>
-              Interview Type
-              <span>*</span>
-            </label>
-
-            <div className="ai-choice-grid">
-              {INTERVIEW_TYPES.map((type) => (
-                <button
-                  type="button"
-                  key={type.value}
-                  className={`ai-choice-card ${
-                    config.interviewType === type.value
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    updateConfig(
-                      "interviewType",
-                      type.value,
-                    )
-                  }
-                >
-                  <div className="ai-choice-icon">
-                    {type.icon}
-                  </div>
-
-                  <div className="ai-choice-content">
-                    <strong>{type.title}</strong>
-
-                    <span>{type.description}</span>
-                  </div>
-
-                  <div className="ai-radio">
-                    {config.interviewType === type.value && (
-                      <div />
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Difficulty */}
-
-          <div className="ai-field">
-            <label>
-              Difficulty Level
-              <span>*</span>
-            </label>
-
-            <div className="ai-difficulty-grid">
-              {(["Easy", "Medium", "Hard"] as Difficulty[]).map(
-                (difficulty) => (
-                  <button
-                    type="button"
-                    key={difficulty}
-                    className={`ai-difficulty ${
-                      config.difficulty === difficulty
-                        ? "selected"
-                        : ""
-                    }`}
-                    onClick={() =>
+        <div className="ai-layout">
+          <form className="ai-form" onSubmit={handleSubmit}>
+            {/* Target Role */}
+            <section className="ai-step">
+              <span className="ai-step__num" aria-hidden="true">01</span>
+              <div className="ai-step__body">
+                <div className="field">
+                  <label className="field__label" htmlFor="ai-target-role">
+                    What role are you going for?
+                  </label>
+                  <input
+                    id="ai-target-role"
+                    className="input input--lg"
+                    type="text"
+                    placeholder="e.g. Frontend Developer, SDE-1, Full Stack Intern…"
+                    value={config.targetRole}
+                    onChange={(event) =>
                       updateConfig(
-                        "difficulty",
-                        difficulty,
+                        "targetRole",
+                        event.target.value,
+                      )
+                    }
+                    required
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Domain */}
+            <section className="ai-step">
+              <span className="ai-step__num" aria-hidden="true">02</span>
+              <div className="ai-step__body">
+                <div className="field">
+                  <label className="field__label" htmlFor="ai-domain">
+                    Domain or track
+                  </label>
+                  <select
+                    id="ai-domain"
+                    className="select"
+                    value={config.domain}
+                    onChange={(event) =>
+                      updateConfig(
+                        "domain",
+                        event.target.value,
                       )
                     }
                   >
-                    <span className="ai-difficulty-dot" />
+                    {DOMAINS.map((domain) => (
+                      <option key={domain} value={domain}>
+                        {domain}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </section>
 
-                    {difficulty}
+            {/* Interview Type */}
+            <section className="ai-step" aria-labelledby="ai-type-label">
+              <span className="ai-step__num" aria-hidden="true">03</span>
+              <div className="ai-step__body">
+                <p id="ai-type-label" className="field__label">
+                  What kind of interview?
+                </p>
+                <div className="ai-grid ai-grid--3">
+                  {INTERVIEW_TYPES.map((type) => (
+                    <button
+                      type="button"
+                      key={type.value}
+                      className="choice"
+                      aria-pressed={config.interviewType === type.value}
+                      onClick={() =>
+                        updateConfig(
+                          "interviewType",
+                          type.value,
+                        )
+                      }
+                    >
+                      <span className="choice__tick" aria-hidden="true" />
+                      <span className="choice__title">{type.title}</span>
+                      <span className="choice__desc">{type.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Difficulty */}
+            <section className="ai-step" aria-labelledby="ai-difficulty-label">
+              <span className="ai-step__num" aria-hidden="true">04</span>
+              <div className="ai-step__body">
+                <p id="ai-difficulty-label" className="field__label">
+                  How hard should it be?
+                </p>
+                <div className="segmented segmented--buttons">
+                  {(["Easy", "Medium", "Hard"] as Difficulty[]).map(
+                    (difficulty) => (
+                      <button
+                        type="button"
+                        key={difficulty}
+                        className="segmented__option"
+                        aria-pressed={config.difficulty === difficulty}
+                        onClick={() =>
+                          updateConfig(
+                            "difficulty",
+                            difficulty,
+                          )
+                        }
+                      >
+                        {difficulty}
+                      </button>
+                    ),
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* Number of Questions */}
+            <section className="ai-step" aria-labelledby="ai-count-label">
+              <span className="ai-step__num" aria-hidden="true">05</span>
+              <div className="ai-step__body">
+                <p id="ai-count-label" className="field__label">
+                  How many questions?
+                </p>
+                <div className="ai-grid ai-grid--3">
+                  {QUESTION_COUNTS.map((count) => (
+                    <button
+                      type="button"
+                      key={count}
+                      className="choice choice--count"
+                      aria-pressed={config.questionCount === count}
+                      onClick={() =>
+                        updateConfig(
+                          "questionCount",
+                          count,
+                        )
+                      }
+                    >
+                      <span className="choice__tick" aria-hidden="true" />
+                      <span className="choice__big serif">{count}</span>
+                      <span className="choice__desc">
+                        questions · ~{count * 5} min
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Interview Mode */}
+            <section className="ai-step" aria-labelledby="ai-mode-label">
+              <span className="ai-step__num" aria-hidden="true">06</span>
+              <div className="ai-step__body">
+                <p id="ai-mode-label" className="field__label">
+                  Speak or type?
+                </p>
+                <div className="ai-grid ai-grid--2">
+                  <button
+                    type="button"
+                    className="choice choice--mode"
+                    aria-pressed={config.interviewMode === "Text"}
+                    onClick={() =>
+                      updateConfig(
+                        "interviewMode",
+                        "Text",
+                      )
+                    }
+                  >
+                    <span className="choice__tick" aria-hidden="true" />
+                    <span className="choice__icon serif" aria-hidden="true">Aa</span>
+                    <span className="choice__title">Text interview</span>
+                    <span className="choice__desc">
+                      Type your answers in a chat interface.
+                    </span>
+                    <span className="choice__price">₹99</span>
                   </button>
-                ),
-              )}
-            </div>
-          </div>
 
-          {/* Number of Questions */}
+                  <button
+                    type="button"
+                    className="choice choice--mode"
+                    aria-pressed={config.interviewMode === "Audio"}
+                    onClick={() =>
+                      updateConfig(
+                        "interviewMode",
+                        "Audio",
+                      )
+                    }
+                  >
+                    <span className="choice__tick" aria-hidden="true" />
+                    <span className="choice__icon" aria-hidden="true">
+                      <Icon name="mic" size={22} />
+                    </span>
+                    <span className="choice__title">Voice interview</span>
+                    <span className="choice__desc">
+                      Speak your answers naturally — the closest thing to the day.
+                    </span>
+                    <span className="choice__price">₹199</span>
+                  </button>
+                </div>
+              </div>
+            </section>
 
-          <div className="ai-field">
-            <label>
-              Number of Questions
-            </label>
+            {/* Schedule Interview */}
+            <section className="ai-step">
+              <span className="ai-step__num" aria-hidden="true">07</span>
+              <div className="ai-step__body">
+                <div className="field">
+                  <label className="field__label" htmlFor="ai-scheduled-at">
+                    When do you want to take it?
+                  </label>
+                  <div className="ai-datetime">
+                    <Icon name="calendar" size={20} />
+                    <input
+                      id="ai-scheduled-at"
+                      className="input"
+                      type="datetime-local"
+                      value={config.scheduledAt}
+                      min={new Date().toISOString().slice(0, 16)}
+                      onChange={(event) =>
+                        updateConfig("scheduledAt", event.target.value)
+                      }
+                      required
+                    />
+                  </div>
+                  <p className="field__hint">
+                    We'll send you a reminder 15 minutes before your scheduled interview.
+                  </p>
+                </div>
+              </div>
+            </section>
 
-            <div className="ai-question-count-grid">
-              {QUESTION_COUNTS.map((count) => (
-                <button
-                  type="button"
-                  key={count}
-                  className={`ai-question-count ${
-                    config.questionCount === count
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    updateConfig(
-                      "questionCount",
-                      count,
-                    )
-                  }
-                >
-                  <strong>{count}</strong>
+            {/* Job Description + Resume */}
+            <section className="ai-step">
+              <span className="ai-step__num" aria-hidden="true">08</span>
+              <div className="ai-step__body ai-step__body--stack">
+                <div className="field">
+                  <label className="field__label" htmlFor="ai-jd">
+                    Job description
+                    <span className="field__optional">optional — helps tailor the questions</span>
+                  </label>
+                  <textarea
+                    id="ai-jd"
+                    className="textarea"
+                    rows={5}
+                    placeholder="Paste the job description here. The AI will use it to make your interview more relevant…"
+                    value={config.jobDescription}
+                    onChange={(event) =>
+                      updateConfig(
+                        "jobDescription",
+                        event.target.value,
+                      )
+                    }
+                  />
+                </div>
 
-                  <span>questions</span>
+                <div className="field">
+                  <span className="field__label">
+                    Resume
+                    <span className="field__optional">optional</span>
+                  </span>
+                  <label className="upload">
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(event) =>
+                        updateConfig(
+                          "resume",
+                          event.target.files?.[0] ?? null,
+                        )
+                      }
+                    />
+                    <span className="upload__icon" aria-hidden="true">
+                      <Icon name="upload" size={20} />
+                    </span>
+                    <span className="upload__text">
+                      <strong>
+                        {config.resume
+                          ? config.resume.name
+                          : "Upload your resume"}
+                      </strong>
+                      <span>PDF, DOC or DOCX · Max 5 MB</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </section>
 
-                  <small>
-                    ~{count * 5} min
-                  </small>
-                </button>
-              ))}
-            </div>
-          </div>
+            {submitError && (
+              <p className="notice notice--error" role="alert">
+                <Icon name="alert" className="notice__icon" />
+                <span className="notice__body">{submitError}</span>
+              </p>
+            )}
 
-          {/* Interview Mode */}
-
-          <div className="ai-field">
-            <label>
-              Interview Mode
-              <span>*</span>
-            </label>
-
-            <div className="ai-mode-grid">
+            <div className="ai-form__footer">
               <button
                 type="button"
-                className={`ai-mode-card ${
-                  config.interviewMode === "Text"
-                    ? "selected"
-                    : ""
-                }`}
-                onClick={() =>
-                  updateConfig(
-                    "interviewMode",
-                    "Text",
-                  )
-                }
+                className="btn btn--ghost"
+                onClick={() => navigate("/")}
               >
-                <div className="ai-mode-icon">
-                  Aa
-                </div>
-
-                <div>
-                  <strong>Text Interview</strong>
-
-                  <span>
-                    Type your answers in a chat
-                    interface.
-                  </span>
-
-                  <small className="ai-mode-price">₹99</small>
-                </div>
+                <Icon name="arrow-left" size={18} /> Back
               </button>
 
               <button
-                type="button"
-                className={`ai-mode-card ${
-                  config.interviewMode === "Audio"
-                    ? "selected"
-                    : ""
-                }`}
-                onClick={() =>
-                  updateConfig(
-                    "interviewMode",
-                    "Audio",
-                  )
-                }
+                type="submit"
+                className="btn btn--amber"
+                disabled={isProcessing}
               >
-                <div className="ai-mode-icon">
-                  ◉
-                </div>
-
-                <div>
-                  <strong>Voice Interview</strong>
-
-                  <span>
-                    Speak your answers naturally.
-                  </span>
-
-                  <small className="ai-mode-price">₹199</small>
-                </div>
+                {isProcessing ? (
+                  <>
+                    Opening secure payment
+                    <span className="breath" aria-hidden="true"><span /><span /><span /></span>
+                  </>
+                ) : hasFailedAttempt ? (
+                  <>Try payment again · {price}</>
+                ) : (
+                  <>
+                    Continue to payment · {price}
+                    <span className="btn__arrow" aria-hidden="true">→</span>
+                  </>
+                )}
               </button>
             </div>
-          </div>
+          </form>
 
-          {/* Schedule Interview */}
-
-          <div className="ai-field">
-            <label>
-              Interview Date & Time
-              <span>*</span>
-            </label>
-
-            <div className="ai-schedule-input">
-              <div className="ai-schedule-icon">
-                📅
+          <aside className="ai-summary" aria-label="Your Open Room">
+            <div className="ai-summary__card">
+              <div className="ai-summary__glow" aria-hidden="true" />
+              <p className="ai-summary__label">Your room</p>
+              <p className="ai-summary__role serif">
+                {config.targetRole.trim() || "Your target role"}
+              </p>
+              <dl className="ai-summary__list">
+                <div>
+                  <dt>Track</dt>
+                  <dd>{config.domain}</dd>
+                </div>
+                <div>
+                  <dt>Kind</dt>
+                  <dd>{config.interviewType}</dd>
+                </div>
+                <div>
+                  <dt>Level</dt>
+                  <dd>{config.difficulty}</dd>
+                </div>
+                <div>
+                  <dt>Length</dt>
+                  <dd>
+                    {config.questionCount} questions · ~{config.questionCount * 5} min
+                  </dd>
+                </div>
+                <div>
+                  <dt>Mode</dt>
+                  <dd>{config.interviewMode === "Audio" ? "Voice" : "Text"}</dd>
+                </div>
+                <div>
+                  <dt>When</dt>
+                  <dd>{formatScheduled(config.scheduledAt)}</dd>
+                </div>
+              </dl>
+              <div className="ai-summary__total">
+                <span>Total</span>
+                <span className="serif">{price}</span>
               </div>
-
-              <div className="ai-schedule-content">
-                <span>Choose when you want to take your interview</span>
-
-                <input
-                  type="datetime-local"
-                  value={config.scheduledAt}
-                  min={new Date().toISOString().slice(0, 16)}
-                  onChange={(event) =>
-                    updateConfig("scheduledAt", event.target.value)
-                  }
-                  required
-                />
-              </div>
+              <p className="ai-summary__note">
+                You'll pay securely through Razorpay. Your interview is booked
+                only once payment goes through.
+              </p>
             </div>
-
-            <p className="ai-field-hint">
-              We'll send you a reminder 15 minutes before your scheduled interview.
+            <p className="ai-summary__aside serif">
+              “Stumble once here, where it doesn't cost anything.”
             </p>
-          </div>
-
-          {/* Job Description */}
-
-          <div className="ai-field">
-            <label>
-              Job Description
-              <em>
-                optional — helps AI tailor questions
-              </em>
-            </label>
-
-            <textarea
-              rows={5}
-              placeholder="Paste the job description here. The AI will use it to make your interview more relevant..."
-              value={config.jobDescription}
-              onChange={(event) =>
-                updateConfig(
-                  "jobDescription",
-                  event.target.value,
-                )
-              }
-            />
-          </div>
-
-          {/* Resume */}
-
-          <div className="ai-field">
-            <label>
-              Resume
-              <em>
-                optional
-              </em>
-            </label>
-
-            <label className="ai-upload">
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={(event) =>
-                  updateConfig(
-                    "resume",
-                    event.target.files?.[0] ?? null,
-                  )
-                }
-              />
-
-              <div className="ai-upload-icon">
-                ↑
-              </div>
-
-              <div>
-                <strong>
-                  {config.resume
-                    ? config.resume.name
-                    : "Upload your resume"}
-                </strong>
-
-                <span>
-                  PDF, DOC or DOCX · Max 5 MB
-                </span>
-              </div>
-            </label>
-          </div>
-
-          {submitError && (
-            <p className="ai-error" role="alert">
-              {submitError}
-            </p>
-          )}
-
-          <div className="ai-form-footer">
-            <button
-              type="button"
-              className="ai-back-btn"
-              onClick={() => navigate("/")}
-            >
-              ← Back
-            </button>
-
-            <button
-              type="submit"
-              className="ai-start-setup-btn"
-              disabled={isProcessing}
-            >
-              {isProcessing
-                ? "Processing…"
-                : hasFailedAttempt
-                  ? "Retry Payment"
-                  : "Start AI Interview"}
-              <span>→</span>
-            </button>
-          </div>
-        </form>
-
-        <div className="ai-trust-row">
-          <span>✦</span>
-          Your answers stay private
-          <span>•</span>
-          Practice without judgment
-          <span>•</span>
-          Get better with every attempt
+          </aside>
         </div>
       </main>
     </div>

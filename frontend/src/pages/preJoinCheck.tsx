@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { AppHeader } from "../components/AppHeader";
+import { Icon } from "../components/Icon";
 import "../stylesheets/preJoinCheck.css";
 
 type PermState = "pending" | "granted" | "denied";
@@ -160,169 +162,157 @@ export function PreJoinCheck() {
     micPerm === "denied";
 
   return (
-    <div className="pj-page">
-      <nav className="pj-nav">
-        <button
-          type="button"
-          className="pj-logo"
-          onClick={() => navigate("/dashboard")}
-        >
-          Ahead<span>.</span>
-        </button>
+    <div className="pj-page page">
+      <AppHeader
+        crumb="Before you start"
+        onBrandClick={() => navigate("/dashboard")}
+      />
 
-        <span className="pj-nav-tag">
-          Before you start
-        </span>
-      </nav>
+      <main id="main" className="wrap wrap--wide pj-container">
+        <div className="pj-preview">
+          <div className={`pj-door ${camPerm === "granted" ? "pj-door--open" : ""}`}>
+            {camPerm === "granted" ? (
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className="pj-video"
+                onLoadedMetadata={(event) => {
+                  event.currentTarget
+                    .play()
+                    .catch(console.error);
+                }}
+              />
+            ) : (
+              <div className="pj-no-cam">
+                <Icon name={camPerm === "denied" ? "camera-off" : "camera"} size={28} />
+                <span>
+                  {camPerm === "pending"
+                    ? "Asking your browser for camera access…"
+                    : "No camera yet"}
+                </span>
+              </div>
+            )}
 
-      <main className="pj-container">
-        <div className="pj-heading">
-          <div className="pj-heading-badge">
-            ONE QUICK CHECK
+            {camPerm === "granted" && (
+              <span className="pj-camera-label">
+                This is you
+              </span>
+            )}
           </div>
+          <div className="pj-floor-light" aria-hidden="true" />
+        </div>
 
-          {/* <h1 className="pj-title">
-            Let's check your setup
-          </h1> */}
-
+        <section className="pj-panel" aria-labelledby="pj-title">
+          <p className="eyebrow">One quick check</p>
+          <h1 id="pj-title" className="pj-title serif">
+            At the door, <em>for a moment.</em>
+          </h1>
           <p className="pj-sub">
             Take a minute to make sure your camera and mic are working.
             Once they're good, you're ready to go in.
           </p>
-        </div>
 
-        {/* Camera preview */}
+          {permissionDenied ? (
+            <div className="pj-denied notice notice--error" role="alert">
+              <Icon name="alert" className="notice__icon" />
+              <div className="notice__body">
+                <h2 className="pj-denied__title">
+                  We can't reach your camera or mic yet
+                </h2>
 
-        <div className="pj-preview-wrap">
-          {camPerm === "granted" ? (
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              playsInline
-              className="pj-video"
-              onLoadedMetadata={(event) => {
-                event.currentTarget
-                  .play()
-                  .catch(console.error);
-              }}
-            />
+                <p>
+                  Allow camera and microphone access in your browser settings,
+                  then refresh this page. Take your time — the interview will
+                  wait for you.
+                </p>
+
+                <button
+                  type="button"
+                  className="btn btn--sm btn--ghost pj-denied__btn"
+                  onClick={() => window.location.reload()}
+                >
+                  Check again
+                </button>
+              </div>
+            </div>
           ) : (
-            <div className="pj-no-cam">
-              {camPerm === "pending"
-                ? "Asking your browser for camera access…"
-                : "No camera yet"}
-            </div>
-          )}
-
-          {camPerm === "granted" && (
-            <div className="pj-camera-label">
-              This is you
-            </div>
-          )}
-        </div>
-
-        {permissionDenied ? (
-          <div className="pj-denied">
-            <div className="pj-denied-icon">
-              !
-            </div>
-
-            <h3>
-              We can't reach your camera or mic yet
-            </h3>
-
-            <p>
-              Allow camera and microphone access in your browser settings,
-              then refresh this page. Take your time — the interview will
-              wait for you.
-            </p>
-
-            <button
-              type="button"
-              className="pj-btn-secondary"
-              onClick={() => window.location.reload()}
-            >
-              Check again
-            </button>
-          </div>
-        ) : (
-          <>
-            {/* Permissions */}
-
-            <div className="pj-status-row">
-              <div
-                className={`pj-chip ${
-                  camPerm === "granted"
-                    ? "pj-chip-ok"
-                    : "pj-chip-wait"
-                }`}
-              >
-                {camPerm === "granted"
-                  ? "● Camera's good"
-                  : "○ Checking your camera…"}
-              </div>
-
-              <div
-                className={`pj-chip ${
-                  micPerm === "granted"
-                    ? "pj-chip-ok"
-                    : "pj-chip-wait"
-                }`}
-              >
-                {micPerm === "granted"
-                  ? "● Mic's good"
-                  : "○ Checking your mic…"}
-              </div>
-            </div>
-
-            {/* Mic meter */}
-
-            {micPerm === "granted" && (
-              <div className="pj-mic-level">
-                <div className="pj-mic-header">
-                  <span>
-                    Your mic level
+            <>
+              <ul className="pj-checks" aria-live="polite">
+                <li className={`pj-check ${camPerm === "granted" ? "pj-check--ok" : ""}`}>
+                  <span className="pj-check__icon" aria-hidden="true">
+                    {camPerm === "granted" ? <Icon name="check" size={16} /> : <span className="pj-check__spinner" />}
                   </span>
-
-                  <span>
-                    {micLevel > 10
-                      ? "Sounds good"
-                      : "Say something to test"}
+                  <span className="pj-check__text">
+                    <strong>Camera</strong>
+                    <span>{camPerm === "granted" ? "Camera's good" : "Checking your camera…"}</span>
                   </span>
-                </div>
+                </li>
 
-                <div className="pj-mic-track">
+                <li className={`pj-check ${micPerm === "granted" ? "pj-check--ok" : ""}`}>
+                  <span className="pj-check__icon" aria-hidden="true">
+                    {micPerm === "granted" ? <Icon name="check" size={16} /> : <span className="pj-check__spinner" />}
+                  </span>
+                  <span className="pj-check__text">
+                    <strong>Microphone</strong>
+                    <span>{micPerm === "granted" ? "Mic's good" : "Checking your mic…"}</span>
+                  </span>
+                </li>
+              </ul>
+
+              {micPerm === "granted" && (
+                <div className="pj-mic-level">
+                  <div className="pj-mic-header">
+                    <span>Your mic level</span>
+                    <span className={micLevel > 10 ? "pj-mic-ok" : ""}>
+                      {micLevel > 10
+                        ? "Sounds good"
+                        : "Say something to test"}
+                    </span>
+                  </div>
+
                   <div
-                    className="pj-mic-fill"
-                    style={{
-                      width: `${micLevel}%`,
-                    }}
-                  />
+                    className="pj-mic-track"
+                    role="meter"
+                    aria-label="Microphone level"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(micLevel)}
+                  >
+                    <div
+                      className="pj-mic-fill"
+                      style={{
+                        width: `${micLevel}%`,
+                      }}
+                    />
+                  </div>
                 </div>
+              )}
+
+              <p className="pj-tip serif">
+                “Somewhere quiet, headphones if you have them.”
+              </p>
+
+              <div className="pj-actions">
+                <button
+                  type="button"
+                  className="btn btn--amber pj-go"
+                  disabled={!allGranted}
+                  onClick={startInterview}
+                >
+                  Go ahead, I'm ready
+                  <span className="btn__arrow" aria-hidden="true">→</span>
+                </button>
               </div>
-            )}
 
-            {/* Actions */}
-
-            <div className="pj-actions">
-              <button
-                type="button"
-                className="pj-btn-primary"
-                disabled={!allGranted}
-                onClick={startInterview}
-              >
-                Go ahead, I'm ready
-                <span>→</span>
-              </button>
-            </div>
-
-            <p className="pj-note">
-              Your camera and mic are only on during the interview, never
-              before.
-            </p>
-          </>
-        )}
+              <p className="pj-note meta">
+                Your camera and mic are only on during the interview, never
+                before.
+              </p>
+            </>
+          )}
+        </section>
       </main>
     </div>
   );

@@ -8,6 +8,8 @@ import {
   type AISessionInterviewConfig,
 } from "../axios/booking";
 import { getApiErrorMessage } from "../axios/data";
+import { Brand } from "../components/Brand";
+import { Icon } from "../components/Icon";
 import "../stylesheets/aiInterviewAudioSession.css";
 
 const AI_INTERVIEWER_NAME = "Maya";
@@ -25,24 +27,24 @@ function InterviewerAvatar() {
           <circle cx="48" cy="48" r="48" />
         </clipPath>
         <linearGradient id="ais-avatar-bg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ebe2d3" />
-          <stop offset="1" stopColor="#dccfb8" />
+          <stop offset="0" stopColor="#f3d7b8" />
+          <stop offset="1" stopColor="#e4a46a" />
         </linearGradient>
       </defs>
       <g clipPath="url(#ais-avatar-clip)">
         <rect width="96" height="96" fill="url(#ais-avatar-bg)" />
-        <circle cx="48" cy="96" r="30" fill="#5c6a48" />
-        <rect x="30" y="70" width="36" height="22" rx="11" fill="#5c6a48" />
+        <circle cx="48" cy="96" r="30" fill="#4a3b57" />
+        <rect x="30" y="70" width="36" height="22" rx="11" fill="#4a3b57" />
         <circle cx="48" cy="42" r="19" fill="#c4764e" />
         <path
           d="M27 44c0-16 9-25 21-25s21 9 21 25c0-6-3-9-6-10 1-8-6-13-15-13s-16 6-15 14c-3 1-6 3-6 9z"
-          fill="#14170f"
+          fill="#1d1a17"
         />
-        <circle cx="41" cy="43" r="2.1" fill="#14170f" />
-        <circle cx="55" cy="43" r="2.1" fill="#14170f" />
+        <circle cx="41" cy="43" r="2.1" fill="#1d1a17" />
+        <circle cx="55" cy="43" r="2.1" fill="#1d1a17" />
         <path
           d="M43 50c3 2.6 7 2.6 10 0"
-          stroke="#14170f"
+          stroke="#1d1a17"
           strokeWidth="2"
           fill="none"
           strokeLinecap="round"
@@ -336,11 +338,13 @@ const setVideoRef = (element: HTMLVideoElement | null) => {
   if (startError) {
     return (
       <div className="ais-page ais-centered">
-        <div className="ais-error-box">
-          <div className="ais-error-icon">!</div>
-          <h3>We couldn't start the interview</h3>
+        <div className="ais-message-card" role="alert">
+          <span className="ais-message-card__icon" aria-hidden="true">
+            <Icon name="alert" size={22} />
+          </span>
+          <h1 className="serif">We couldn't start the interview</h1>
           <p>{startError}</p>
-          <button className="ais-primary-btn" onClick={() => navigate("/dashboard")}>
+          <button className="btn btn--light" onClick={() => navigate("/dashboard")}>
             Back to dashboard
           </button>
         </div>
@@ -351,8 +355,8 @@ const setVideoRef = (element: HTMLVideoElement | null) => {
   if (turnState === "loading") {
     return (
       <div className="ais-page ais-centered">
-        <div className="ais-loading-dots"><span /><span /><span /></div>
-        <p className="ais-loading-label">
+        <div className="ais-lamp" aria-hidden="true" />
+        <p className="ais-loading-label serif" role="status">
           {AI_INTERVIEWER_NAME} is getting the room ready…
         </p>
       </div>
@@ -364,20 +368,23 @@ const setVideoRef = (element: HTMLVideoElement | null) => {
       <div className="ais-page ais-centered">
         {turnState === "evaluating" ? (
           <>
-            <div className="ais-loading-dots"><span /><span /><span /></div>
-            <p className="ais-loading-label">
+            <div className="ais-lamp" aria-hidden="true" />
+            <p className="ais-loading-label serif" role="status">
               {AI_INTERVIEWER_NAME} is going over how it went…
             </p>
           </>
         ) : (
-          <div className="ais-done-card">
-            <div className="ais-done-title">That's a wrap</div>
-            <p className="ais-done-message">
+          <div className="ais-message-card ais-message-card--done">
+            <p className="eyebrow">Session complete</p>
+            <h1 className="serif">That's a wrap.</h1>
+            <p>
               Nicely done. Your notes are on your dashboard whenever you want to
               look them over.
             </p>
-            <button className="ais-primary-btn" onClick={() => navigate("/dashboard")}>
+            <p className="ais-message-card__question serif">How did it actually go?</p>
+            <button className="btn btn--amber" onClick={() => navigate("/dashboard")}>
               Back to dashboard
+              <span className="btn__arrow" aria-hidden="true">→</span>
             </button>
           </div>
         )}
@@ -387,19 +394,13 @@ const setVideoRef = (element: HTMLVideoElement | null) => {
 
   return (
     <div className="ais-page">
-      <div className="ais-header">
+      <header className="ais-header">
         <div className="ais-header-left">
-            <button
-                type="button"
-                className="ais-brand"
-                onClick={() => navigate("/dashboard")}
-            >
-                Ahead<span>.</span>
-            </button>
+            <Brand inverse onClick={() => navigate("/dashboard")} />
 
             <span className="ais-header-divider" />
 
-            <span className="ais-live-badge">● LIVE</span>
+            <span className="ais-live-badge"><span aria-hidden="true" /> Live</span>
 
             <span className="ais-role-name">
                 {interview?.targetRole}
@@ -417,33 +418,35 @@ const setVideoRef = (element: HTMLVideoElement | null) => {
                         ? "ais-timer-warn"
                         : ""
                 }`}
+                role="timer"
+                aria-label="Time left"
             >
+                <Icon name="clock" size={16} />
                 {formatTime(timeLeft)}
             </div>
         </div>
-      </div>
+      </header>
 
-      <div className="ais-main">
+      <main id="main" className={`ais-main ${showCaptions ? "" : "ais-main--no-captions"}`}>
         <div className="ais-tiles">
           <div className={`ais-tile ais-ai-tile ${isSpeaking ? "ais-speaking" : ""}`}>
+            <div className="ais-ai-glow" aria-hidden="true" />
             <div className="ais-avatar-ring">
               <InterviewerAvatar />
             </div>
-            {isSpeaking && (
-              <div className="ais-waveform">
-                {[1, 2, 3, 4, 5].map((n) => <div key={n} className={`ais-wave-bar ais-wave-bar-${n}`} />)}
-              </div>
-            )}
+            <div className={`ais-waveform ${isSpeaking ? "is-on" : ""}`} aria-hidden="true">
+              {[1, 2, 3, 4, 5].map((n) => <div key={n} className={`ais-wave-bar ais-wave-bar-${n}`} />)}
+            </div>
             <div className="ais-tile-label">{AI_INTERVIEWER_NAME}</div>
             {turnState === "ai-thinking" && (
-              <div className="ais-tile-status">Thinking it over…</div>
+              <div className="ais-tile-status" role="status">Thinking it over…</div>
             )}
           </div>
 
           <div className="ais-tile ais-user-tile">
             {streamError ? (
               <div className="ais-cam-placeholder">
-                <span className="ais-cam-icon">📷</span>
+                <Icon name="camera-off" size={26} />
                 <p>{streamError}</p>
               </div>
             ) : (
@@ -457,24 +460,24 @@ const setVideoRef = (element: HTMLVideoElement | null) => {
                 />
                 {!isCamOn && (
                   <div className="ais-cam-placeholder">
-                    <span className="ais-cam-icon">📷</span>
+                    <Icon name="camera-off" size={26} />
                     <p>Camera's off</p>
                   </div>
                 )}
               </>
             )}
-            {turnState === "recording" && <div className="ais-recording-badge">● REC</div>}
+            {turnState === "recording" && <div className="ais-recording-badge"><span aria-hidden="true" /> Recording</div>}
             <div className="ais-tile-label">You</div>
           </div>
         </div>
 
         {showCaptions && (
-          <div className="ais-captions-panel">
+          <section className="ais-captions-panel" aria-label="Captions" aria-live="polite">
             <div className="ais-captions-header">Captions</div>
             {currentQuestion && (
-              <div className="ais-caption-block">
+              <div className="ais-caption-block" key={currentQuestion}>
                 <div className="ais-caption-speaker">{AI_INTERVIEWER_NAME}</div>
-                <p className="ais-caption-text">{currentQuestion}</p>
+                <p className="ais-caption-text ais-caption-question">{currentQuestion}</p>
               </div>
             )}
             {turnState === "recording" && (
@@ -495,17 +498,23 @@ const setVideoRef = (element: HTMLVideoElement | null) => {
                 <p className="ais-caption-text">{currentTranscript}</p>
               </div>
             )}
-          </div>
+            {turnState === "idle" && (
+              <p className="ais-caption-hint">
+                Take a breath. Press <strong>Answer</strong> when you're ready, and <strong>I'm done</strong> when you've finished.
+              </p>
+            )}
+          </section>
         )}
-      </div>
+      </main>
 
-      <div className="ais-controls">
+      <nav className="ais-controls" aria-label="Interview controls">
         <button
           className={`ais-ctrl-btn ${isMuted ? "ais-ctrl-active" : ""}`}
           onClick={toggleMute}
           title={isMuted ? "Unmute" : "Mute"}
+          aria-pressed={isMuted}
         >
-          <span className="ais-ctrl-icon">{isMuted ? "🔇" : "🎤"}</span>
+          <span className="ais-ctrl-icon"><Icon name={isMuted ? "mic-off" : "mic"} /></span>
           <span className="ais-ctrl-label">{isMuted ? "Unmute" : "Mute"}</span>
         </button>
 
@@ -513,27 +522,28 @@ const setVideoRef = (element: HTMLVideoElement | null) => {
           className={`ais-ctrl-btn ${!isCamOn ? "ais-ctrl-active" : ""}`}
           onClick={toggleCamera}
           title={isCamOn ? "Turn camera off" : "Turn camera on"}
+          aria-pressed={!isCamOn}
         >
-          <span className="ais-ctrl-icon">{isCamOn ? "📷" : "🚫"}</span>
-          <span className="ais-ctrl-label">{isCamOn ? "Camera" : "Cam Off"}</span>
+          <span className="ais-ctrl-icon"><Icon name={isCamOn ? "camera" : "camera-off"} /></span>
+          <span className="ais-ctrl-label">{isCamOn ? "Camera" : "Cam off"}</span>
         </button>
 
         {turnState === "idle" && (
           <button className="ais-ctrl-btn ais-ctrl-record" onClick={startRecording}>
-            <span className="ais-ctrl-icon">◉</span>
+            <span className="ais-ctrl-icon"><Icon name="mic" /></span>
             <span className="ais-ctrl-label">Answer</span>
           </button>
         )}
         {turnState === "recording" && (
           <button className="ais-ctrl-btn ais-ctrl-submit ais-pulse" onClick={stopAndTranscribe}>
-            <span className="ais-ctrl-icon">✓</span>
+            <span className="ais-ctrl-icon"><Icon name="check" /></span>
             <span className="ais-ctrl-label">I'm done</span>
           </button>
         )}
         {(turnState === "transcribing" || turnState === "ai-thinking" || turnState === "ai-speaking") && (
-          <button className="ais-ctrl-btn" disabled>
+          <button className="ais-ctrl-btn ais-ctrl-wait" disabled>
             <span className="ais-ctrl-icon">
-              {turnState === "ai-speaking" ? "🔊" : "⌛"}
+              <Icon name={turnState === "ai-speaking" ? "sound" : "wait"} />
             </span>
             <span className="ais-ctrl-label">
               {turnState === "ai-speaking"
@@ -549,16 +559,17 @@ const setVideoRef = (element: HTMLVideoElement | null) => {
           className={`ais-ctrl-btn ${showCaptions ? "ais-ctrl-active" : ""}`}
           onClick={() => setShowCaptions((s) => !s)}
           title="Toggle captions"
+          aria-pressed={showCaptions}
         >
-          <span className="ais-ctrl-icon ais-ctrl-cc">CC</span>
+          <span className="ais-ctrl-icon"><Icon name="captions" /></span>
           <span className="ais-ctrl-label">Captions</span>
         </button>
 
         <button className="ais-ctrl-btn ais-ctrl-end-btn" onClick={handleEndSession}>
-          <span className="ais-ctrl-icon">✕</span>
+          <span className="ais-ctrl-icon"><Icon name="end" /></span>
           <span className="ais-ctrl-label">End</span>
         </button>
-      </div>
+      </nav>
     </div>
   );
 }

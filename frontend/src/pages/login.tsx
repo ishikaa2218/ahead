@@ -9,6 +9,7 @@ import {
   type SignupPayload,
 } from "../axios/data";
 import { useAuth } from "../context/useAuth";
+import { AuthShell } from "../components/AuthShell";
 import "../stylesheets/login.css";
 
 function getSafeRedirectTarget(raw: string | null): string | null {
@@ -206,136 +207,193 @@ export function Login() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <Link to="/" className="auth-card__brand">
-          Ahead
-        </Link>
-
-        <h1 className="auth-card__title">
-          {mode === "login" ? "Welcome back" : "Let's get you set up"}
+    <AuthShell
+      aside={{
+        quote: (
+          <>
+            Take a moment. <em>There's no rush.</em>
+          </>
+        ),
+        caption: "The room before the room that matters.",
+      }}
+    >
+      <div className="auth__head" key={`head-${mode}`}>
+        <p className="eyebrow">{mode === "login" ? "Log in" : "Create an account"}</p>
+        <h1 className="auth__title serif">
+          {mode === "login" ? (
+            <>
+              Welcome <em>back.</em>
+            </>
+          ) : (
+            <>
+              Let's get you <em>set up.</em>
+            </>
+          )}
         </h1>
-        <p className="auth-card__subtitle">
+        <p className="auth__subtitle">
           {mode === "login"
             ? "Log back in and pick up right where you left off."
             : "A few details and you're in. We'll take it one step at a time from there."}
         </p>
+      </div>
 
-        {mode === "login" ? (
-          <form
-            className="auth-form"
-            onSubmit={handleLoginSubmit}
-            noValidate
-          >
-            <div className="form-group">
-              <label htmlFor="login-email">Email</label>
-              <input
-                id="login-email"
-                type="email"
-                required
-                autoComplete="email"
-                value={loginForm.email}
-                onChange={(event) =>
-                  updateLoginForm("email", event.target.value)
-                }
-              />
+      {mode === "login" ? (
+        <form
+          className="auth-form"
+          onSubmit={handleLoginSubmit}
+          noValidate
+          key="login"
+        >
+          <fieldset className="auth-form__role">
+            <legend className="field__label">Log in as</legend>
+            <div className="segmented">
+              {ROLE_OPTIONS.map((option) => (
+                <label key={option.value} className="segmented__option">
+                  <input
+                    type="radio"
+                    name="login-role"
+                    value={option.value}
+                    checked={loginForm.role === option.value}
+                    onChange={() => updateLoginForm("role", option.value)}
+                  />
+                  {option.label}
+                </label>
+              ))}
             </div>
+          </fieldset>
 
-            <div className="form-group">
+          <div className="field">
+            <label className="field__label" htmlFor="login-email">Email</label>
+            <input
+              id="login-email"
+              className="input"
+              type="email"
+              required
+              autoComplete="email"
+              value={loginForm.email}
+              onChange={(event) =>
+                updateLoginForm("email", event.target.value)
+              }
+            />
+          </div>
+
+          <div className="field">
+            <div className="field__label">
               <label htmlFor="login-password">Password</label>
-              <input
-                id="login-password"
-                type="password"
-                required
-                minLength={8}
-                autoComplete="current-password"
-                value={loginForm.password}
-                onChange={(event) =>
-                  updateLoginForm("password", event.target.value)
-                }
-              />
+              <Link to="/forgot-password" className="auth__inline-link">
+                Forgot your password?
+              </Link>
             </div>
+            <input
+              id="login-password"
+              className="input"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="current-password"
+              value={loginForm.password}
+              onChange={(event) =>
+                updateLoginForm("password", event.target.value)
+              }
+            />
+          </div>
 
-            <fieldset className="role-fieldset">
-              <legend>Log in as</legend>
-              <div className="role-options">
-                {ROLE_OPTIONS.map((option) => (
-                  <label key={option.value} className="role-option">
-                    <input
-                      type="radio"
-                      name="login-role"
-                      value={option.value}
-                      checked={loginForm.role === option.value}
-                      onChange={() => updateLoginForm("role", option.value)}
-                    />
-                    {option.label}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+          {signupSuccess && (
+            <p className="notice notice--success" role="status">
+              {signupSuccess}
+            </p>
+          )}
 
-            {signupSuccess && (
-              <p className="form-success" role="status">
-                {signupSuccess}
-              </p>
-            )}
+          {loginError && (
+            <p className="notice notice--error" role="alert">
+              {loginError}
+            </p>
+          )}
 
-            {loginError && (
-              <p className="form-error" role="alert">
-                {loginError}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="btn btn--primary btn--block"
-              disabled={isLoggingIn}
-            >
-              {isLoggingIn ? "One moment…" : "Go ahead"}
-            </button>
-          </form>
-        ) : (
-          <form
-            className="auth-form"
-            onSubmit={handleSignupSubmit}
-            noValidate
+          <button
+            type="submit"
+            className="btn btn--block"
+            disabled={isLoggingIn}
           >
-            <div className="form-group">
-              <label htmlFor="signup-name">Full name</label>
-              <input
-                id="signup-name"
-                type="text"
-                required
-                autoComplete="name"
-                value={signupForm.name}
-                onChange={(event) =>
-                  updateSignupForm("name", event.target.value)
-                }
-              />
+            {isLoggingIn ? (
+              <>
+                One moment
+                <span className="breath" aria-hidden="true"><span /><span /><span /></span>
+              </>
+            ) : (
+              <>
+                Go ahead
+                <span className="btn__arrow" aria-hidden="true">→</span>
+              </>
+            )}
+          </button>
+        </form>
+      ) : (
+        <form
+          className="auth-form"
+          onSubmit={handleSignupSubmit}
+          noValidate
+          key="signup"
+        >
+          <fieldset className="auth-form__role">
+            <legend className="field__label">Sign up as</legend>
+            <div className="segmented">
+              {ROLE_OPTIONS.map((option) => (
+                <label key={option.value} className="segmented__option">
+                  <input
+                    type="radio"
+                    name="signup-role"
+                    value={option.value}
+                    checked={signupForm.role === option.value}
+                    onChange={() => updateSignupForm("role", option.value)}
+                  />
+                  {option.label}
+                </label>
+              ))}
             </div>
+          </fieldset>
 
-            <div className="form-group">
-              <label htmlFor="signup-email">Email</label>
-              <input
-                id="signup-email"
-                type="email"
-                required
-                autoComplete="email"
-                value={signupForm.email}
-                onChange={(event) =>
-                  updateSignupForm("email", event.target.value)
-                }
-              />
-            </div>
+          <div className="field">
+            <label className="field__label" htmlFor="signup-name">Full name</label>
+            <input
+              id="signup-name"
+              className="input"
+              type="text"
+              required
+              autoComplete="name"
+              value={signupForm.name}
+              onChange={(event) =>
+                updateSignupForm("name", event.target.value)
+              }
+            />
+          </div>
 
-            <div className="form-group">
-              <label htmlFor="signup-password">Password</label>
+          <div className="field">
+            <label className="field__label" htmlFor="signup-email">Email</label>
+            <input
+              id="signup-email"
+              className="input"
+              type="email"
+              required
+              autoComplete="email"
+              value={signupForm.email}
+              onChange={(event) =>
+                updateSignupForm("email", event.target.value)
+              }
+            />
+          </div>
+
+          <div className="auth-form__pair">
+            <div className="field">
+              <label className="field__label" htmlFor="signup-password">Password</label>
               <input
                 id="signup-password"
+                className="input"
                 type="password"
                 required
                 minLength={8}
                 autoComplete="new-password"
+                aria-describedby="signup-password-hint"
                 value={signupForm.password}
                 onChange={(event) =>
                   updateSignupForm("password", event.target.value)
@@ -343,12 +401,13 @@ export function Login() {
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="signup-confirm-password">
+            <div className="field">
+              <label className="field__label" htmlFor="signup-confirm-password">
                 Confirm password
               </label>
               <input
                 id="signup-confirm-password"
+                className="input"
                 type="password"
                 required
                 minLength={8}
@@ -359,58 +418,49 @@ export function Login() {
                 }
               />
             </div>
+          </div>
+          <p id="signup-password-hint" className="field__hint">
+            At least 8 characters.
+          </p>
 
-            <fieldset className="role-fieldset">
-              <legend>Sign up as</legend>
-              <div className="role-options">
-                {ROLE_OPTIONS.map((option) => (
-                  <label key={option.value} className="role-option">
-                    <input
-                      type="radio"
-                      name="signup-role"
-                      value={option.value}
-                      checked={signupForm.role === option.value}
-                      onChange={() => updateSignupForm("role", option.value)}
-                    />
-                    {option.label}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            {signupError && (
-              <p className="form-error" role="alert">
-                {signupError}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="btn btn--primary btn--block"
-              disabled={isSigningUp}
-            >
-              {isSigningUp ? "Setting things up…" : "Create my account"}
-            </button>
-          </form>
-        )}
-
-        <div className="auth-links">
-          {mode === "login" && (
-            <Link to="/forgot-password" className="auth-link">
-              Forgot your password?
-            </Link>
+          {signupError && (
+            <p className="notice notice--error" role="alert">
+              {signupError}
+            </p>
           )}
+
           <button
-            type="button"
-            className="auth-link auth-link--button"
-            onClick={toggleMode}
+            type="submit"
+            className="btn btn--block"
+            disabled={isSigningUp}
           >
-            {mode === "login"
-              ? "New here? Create an account"
-              : "Already with us? Log in"}
+            {isSigningUp ? (
+              <>
+                Setting things up
+                <span className="breath" aria-hidden="true"><span /><span /><span /></span>
+              </>
+            ) : (
+              <>
+                Create my account
+                <span className="btn__arrow" aria-hidden="true">→</span>
+              </>
+            )}
           </button>
-        </div>
+        </form>
+      )}
+
+      <div className="auth__switch">
+        <span className="muted">
+          {mode === "login" ? "New here?" : "Already with us?"}
+        </span>{" "}
+        <button
+          type="button"
+          className="text-button"
+          onClick={toggleMode}
+        >
+          {mode === "login" ? "Create an account" : "Log in"}
+        </button>
       </div>
-    </div>
+    </AuthShell>
   );
 }
