@@ -1,698 +1,648 @@
-/* =========================================================
-   PAGE
-========================================================= */
+/* The Real Room — company-based interview booking.
+   Dusk is this room's colour: more focused, still warm. */
 
-.bk-page {
-  min-height: 100vh;
-  background: #faf7f1;
-  color: #14170f;
-  padding-bottom: 60px;
+.real-room {
+  background: var(--c-ground);
 }
 
-.bk-container {
-  width: min(1100px, calc(100% - 40px));
-  margin: 0 auto;
+/* ---------- hero band ---------- */
+
+.bk-hero {
+  position: relative;
+  padding: clamp(2.5rem, 1.5rem + 4vw, 4.5rem) 0 0;
+  background: var(--c-dusk);
+  color: var(--c-ground);
+  overflow: hidden;
+  isolation: isolate;
 }
 
-/* =========================================================
-   NAVBAR
-========================================================= */
-
-.bk-nav {
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 40px;
-  background: #ffffff;
-  border-bottom: 1px solid #e7e1d4;
-  color: #14170f;
+.bk-hero::before {
+  content: "";
+  position: absolute;
+  right: -10%;
+  top: -60%;
+  width: 55%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(228, 164, 106, 0.3), transparent);
+  z-index: -1;
+  animation: dusk-lamp var(--d-light) var(--ease-out) both;
 }
 
-.bk-logo {
-  color: #5c6a48;
-  text-decoration: none;
-  font-size: 27px;
-  font-weight: 800;
-  letter-spacing: -1px;
+@keyframes dusk-lamp {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
 }
 
-.bk-logo span {
-  color: #e6a040;
+.bk-hero__eyebrow {
+  color: var(--c-amber);
 }
 
-.bk-nav-tag {
-  font-size: 14px;
-  color: #4b5147;
+.bk-hero__title {
+  margin-top: var(--s-3);
+  font-size: var(--t-3xl);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  animation: rise-bk var(--d-reveal) var(--ease-out) both;
 }
 
-/* =========================================================
-   STEP INDICATOR
-========================================================= */
+.bk-hero__title em {
+  font-style: italic;
+  color: var(--c-amber-soft);
+}
+
+.bk-hero__lede {
+  max-width: 36rem;
+  margin-top: var(--s-4);
+  font-size: var(--t-md);
+  color: var(--c-dusk-soft);
+  animation: rise-bk var(--d-reveal) var(--ease-out) 0.1s both;
+}
+
+/* ---------- steps ---------- */
 
 .bk-steps {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 42px 0 50px;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: clamp(2rem, 1.5rem + 2vw, 3rem) 0 0;
+  padding: 0;
+  border-top: 1px solid rgba(246, 241, 233, 0.16);
 }
 
 .bk-step {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  min-width: 170px;
+  gap: 0.65rem;
+  padding: 1rem 0.5rem 1.1rem 0;
+  font-size: var(--t-sm);
+  color: var(--c-dusk-soft);
+}
+
+.bk-step::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 2px;
+  background: var(--c-amber);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--d-slow) var(--ease-out);
+}
+
+.bk-step.done::after,
+.bk-step.active::after {
+  transform: scaleX(1);
+}
+
+.bk-step.active::after {
+  transform: scaleX(0.5);
 }
 
 .bk-step-circle {
-  width: 38px;
-  height: 38px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #eee9de;
-  color: #6b6f64;
-  font-size: 14px;
-  font-weight: 700;
-  position: relative;
-  z-index: 2;
+  border: 1px solid rgba(246, 241, 233, 0.3);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  transition: all var(--d-base) var(--ease-out);
+}
+
+.bk-step.active {
+  color: var(--c-ground);
 }
 
 .bk-step.active .bk-step-circle {
-  background: #5c6a48;
-  color: white;
+  background: var(--c-ground);
+  border-color: var(--c-ground);
+  color: var(--c-dusk);
 }
 
 .bk-step.done .bk-step-circle {
-  background: #5c6a48;
-  color: white;
+  background: var(--c-amber);
+  border-color: var(--c-amber);
+  color: var(--c-ink);
 }
 
-.bk-step-label {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #6b6f64;
+/* ---------- content ---------- */
+
+.bk-container {
+  padding-top: clamp(2rem, 1.5rem + 3vw, 3.5rem);
+  padding-bottom: var(--s-9);
+}
+
+.bk-error {
+  margin-bottom: var(--s-5);
+}
+
+.bk-step-content {
+  animation: rise-bk var(--d-slow) var(--ease-out) both;
+}
+
+.bk-step-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin-bottom: var(--s-6);
+}
+
+.bk-step-head--center {
+  align-items: center;
   text-align: center;
 }
 
-.bk-step.active .bk-step-label {
-  color: #14170f;
-  font-weight: 700;
-}
-
-.bk-step-line {
-  position: absolute;
-  top: 19px;
-  left: calc(50% + 19px);
-  width: calc(100% - 38px);
-  height: 2px;
-  background: #e7e1d4;
-}
-
-.bk-step.done .bk-step-line {
-  background: #5c6a48;
-}
-
-/* =========================================================
-   ERROR
-========================================================= */
-
-.bk-error {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f4e3d9;
-  border: 1px solid #e0b6a2;
-  color: #9e3a24;
-  padding: 12px 16px;
-  border-radius: 10px;
-  margin-bottom: 25px;
-}
-
-.bk-error button {
-  border: 0;
-  background: transparent;
-  font-size: 20px;
-  cursor: pointer;
-  color: inherit;
-}
-
-/* =========================================================
-   SECTION
-========================================================= */
-
-.bk-step-content {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
 .bk-section-title {
-  margin: 0;
-  font-size: 30px;
-  letter-spacing: -0.8px;
+  font-size: var(--t-2xl);
+  line-height: 1.05;
+}
+
+.bk-section-title em {
+  font-style: italic;
+  color: var(--c-dusk);
 }
 
 .bk-section-sub {
-  color: #4b5147;
-  margin: 8px 0 30px;
-  font-size: 15px;
+  color: var(--c-ink-2);
 }
 
-/* =========================================================
-   INTERVIEWER CARDS
-========================================================= */
+/* interviewers */
 
 .bk-interviewer-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--s-4);
+}
+
+.bk-skeleton {
+  height: 168px;
+  border-radius: var(--r-lg);
 }
 
 .bk-interviewer-card {
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 18px;
-  width: 100%;
-  padding: 22px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--s-4);
+  padding: var(--s-5);
+  padding-bottom: 3.6rem;
   text-align: left;
-  background: white;
-  border: 1px solid #e7e1d4;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--c-line);
+  background: var(--c-paper);
+  color: var(--c-ink);
+  transition:
+    border-color var(--d-fast) var(--ease-out),
+    box-shadow var(--d-base) var(--ease-out),
+    transform var(--d-base) var(--ease-out);
+  animation: rise-bk var(--d-reveal) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
 }
 
 .bk-interviewer-card:hover {
-  border-color: #8a9475;
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(34, 38, 30, 0.08);
+  box-shadow: var(--e-2);
+  border-color: var(--c-line-strong);
 }
 
 .bk-interviewer-card.selected {
-  border: 2px solid #5c6a48;
-  background: #f6f7f2;
+  border-color: var(--c-dusk);
+  box-shadow: inset 0 0 0 1px var(--c-dusk), var(--e-2);
+}
+
+.bk-avatar,
+.bk-avatar-sm {
+  object-fit: cover;
+  border-radius: var(--r-pill) var(--r-pill) var(--r-sm) var(--r-sm);
+  flex: none;
 }
 
 .bk-avatar {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
+  width: 64px;
+  height: 76px;
+}
+
+.bk-avatar-sm {
+  width: 48px;
+  height: 56px;
 }
 
 .bk-avatar-fallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #e4e8da;
-  color: #4a5638;
-  font-weight: 700;
-  font-size: 22px;
+  display: grid;
+  place-items: center;
+  background: var(--c-dusk-wash);
+  color: var(--c-dusk);
+  font-family: var(--f-serif);
+  font-size: 1.4rem;
+}
+
+.bk-avatar-sm.bk-avatar-fallback {
+  font-size: 1.1rem;
 }
 
 .bk-interviewer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
   min-width: 0;
 }
 
-.bk-interviewer-info h4 {
-  margin: 0 0 4px;
-  font-size: 17px;
+.bk-interviewer-info h3 {
+  font-size: var(--t-md);
 }
 
 .bk-company {
-  color: #5c6a48;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--c-dusk);
 }
 
 .bk-expertise {
-  margin: 9px 0 5px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--t-sm);
+  color: var(--c-ink);
 }
 
 .bk-bio {
-  margin: 0;
-  color: #4b5147;
-  font-size: 13px;
-  line-height: 1.5;
+  margin-top: 0.35rem;
+  font-size: var(--t-sm);
+  color: var(--c-ink-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .bk-selected-badge {
   position: absolute;
-  right: 15px;
-  top: 15px;
-  padding: 5px 9px;
-  border-radius: 20px;
-  background: #5c6a48;
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
+  left: var(--s-5);
+  bottom: var(--s-4);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--c-ink-2);
 }
 
-/* =========================================================
-   SLOTS
-========================================================= */
+.bk-interviewer-card.selected .bk-selected-badge {
+  color: var(--c-dusk);
+}
+
+/* slots */
 
 .bk-slots-section {
-  margin-top: 38px;
+  margin-top: var(--s-7);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--c-line);
+  animation: rise-bk var(--d-slow) var(--ease-out) both;
 }
 
 .bk-slots-title {
-  margin-bottom: 18px;
-  font-size: 19px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem var(--s-3);
+  margin-bottom: var(--s-5);
+  font-size: var(--t-lg);
 }
 
-.bk-slots-title span {
-  color: #5c6a48;
+.bk-slots-title > span:first-of-type {
+  font-family: var(--f-serif);
+  font-weight: 400;
+  font-style: italic;
+  font-size: 1.6rem;
+  color: var(--c-dusk);
 }
 
-.bk-slots-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+.bk-slots-tz {
+  margin-left: auto;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-ink-3);
 }
 
-.bk-slot-card {
+.bk-slot-days {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 18px;
-  background: white;
-  border: 1px solid #e7e1d4;
-  border-radius: 14px;
-  cursor: pointer;
-  text-align: left;
-  transition: 0.2s ease;
+  gap: var(--s-5);
 }
 
-.bk-slot-card:hover {
-  border-color: #5c6a48;
-  transform: translateY(-2px);
+.bk-slot-day {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: start;
 }
 
 .bk-slot-date {
-  font-size: 13px;
-  font-weight: 700;
+  padding-top: 0.75rem;
+  font-weight: 600;
 }
 
-.bk-slot-time {
-  font-size: 15px;
-  color: #14170f;
+.bk-slots-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.bk-slot-card {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 48px;
+  padding: 0.6rem 0.9rem 0.6rem 1.1rem;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-line-strong);
+  background: var(--c-paper);
+  color: var(--c-ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color var(--d-fast) var(--ease-out),
+    color var(--d-fast) var(--ease-out),
+    border-color var(--d-fast) var(--ease-out);
 }
 
 .bk-slot-action {
-  color: #5c6a48;
-  font-size: 13px;
-  font-weight: 700;
-  margin-top: 5px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--c-ground-2);
+  transition: transform var(--d-base) var(--ease-out), background-color var(--d-fast) var(--ease-out);
 }
 
-.bk-empty,
-.bk-loading {
-  color: #4b5147;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
+.bk-slot-card:hover {
+  background: var(--c-dusk);
+  border-color: var(--c-dusk);
+  color: var(--c-ground);
 }
 
-/* =========================================================
-   SUMMARY
-========================================================= */
+.bk-slot-card:hover .bk-slot-action {
+  background: var(--c-amber);
+  color: var(--c-ink);
+  transform: translateX(2px);
+}
 
-.bk-booking-summary-mini {
+.bk-empty {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 15px;
-  margin-bottom: 28px;
-  background: #eef0e9;
-  border-radius: 12px;
-  color: #4a5638;
-  font-size: 13px;
-  font-weight: 600;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-6) 0;
+  color: var(--c-ink-2);
 }
 
-/* =========================================================
-   FORM
-========================================================= */
+.bk-empty--inline {
+  padding: 0;
+}
+
+.bk-empty__title {
+  font-size: var(--t-xl);
+  color: var(--c-ink);
+}
+
+/* step 2 */
+
+.bk-two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: clamp(2rem, 1rem + 4vw, 5rem);
+  align-items: start;
+}
 
 .bk-config-form {
-  background: white;
-  border: 1px solid #e7e1d4;
-  border-radius: 18px;
-  padding: 28px;
-}
-
-.bk-field {
-  margin-bottom: 22px;
-}
-
-.bk-field label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.req {
-  color: #9e3a24;
-}
-
-.bk-optional {
-  color: #9a9a90;
-  font-weight: 400;
-}
-
-.bk-field input,
-.bk-field select,
-.bk-field textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 13px 14px;
-  border: 1px solid #e0d9c9;
-  border-radius: 9px;
-  outline: none;
-  background: white;
-  font-family: inherit;
-  font-size: 14px;
-  transition: border 0.2s ease;
-}
-
-.bk-field input:focus,
-.bk-field select:focus,
-.bk-field textarea:focus {
-  border-color: #5c6a48;
-}
-
-.bk-field textarea {
-  resize: vertical;
-}
-
-.bk-difficulty-group {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: var(--s-5);
+  max-width: 640px;
 }
 
-.bk-diff-btn {
-  flex: 1;
-  padding: 11px;
-  background: white;
-  border: 1px solid #e0d9c9;
-  border-radius: 9px;
-  cursor: pointer;
-  font-weight: 600;
+.bk-config-form .segmented {
+  max-width: 420px;
 }
-
-.bk-diff-btn.active {
-  background: #5c6a48;
-  border-color: #5c6a48;
-  color: white;
-}
-
-.bk-file-name {
-  display: block;
-  margin-top: 8px;
-  color: #5c6a48;
-  font-size: 13px;
-}
-
-/* =========================================================
-   BUTTONS
-========================================================= */
 
 .bk-form-actions {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 28px;
+  gap: var(--s-3);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--c-line);
 }
 
-.bk-btn-primary,
-.bk-btn-outline,
-.bk-btn-pay {
-  padding: 13px 20px;
-  border-radius: 9px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
+/* ticket */
+
+.bk-ticket {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+  padding: var(--s-6);
+  border-radius: var(--r-xl);
+  background: var(--c-paper);
+  border: 1px solid var(--c-line);
+  box-shadow: var(--e-2);
 }
 
-.bk-btn-primary:disabled,
-.bk-btn-outline:disabled,
-.bk-btn-pay:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+.bk-ticket--mini {
+  position: sticky;
+  top: calc(64px + var(--s-5));
+  padding: var(--s-5);
+  border-radius: var(--r-lg);
+  background: var(--c-dusk-wash);
+  border-color: transparent;
+  box-shadow: none;
 }
 
-.bk-btn-primary {
-  border: 1px solid #5c6a48;
-  background: #5c6a48;
-  color: white;
+.bk-ticket__label {
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-dusk);
 }
 
-.bk-btn-primary:hover {
-  transform: translateY(-1px);
-  opacity: 0.92;
+.bk-ticket__when {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 500;
 }
 
-.bk-btn-outline {
-  border: 1px solid #e0d9c9;
-  background: white;
-  color: #3a3f36;
+.bk-ticket__when svg {
+  color: var(--c-dusk);
 }
 
-.bk-btn-outline:hover {
-  border-color: #8a9475;
-}
-
-.bk-btn-pay {
-  border: 0;
-  background: #5c6a48;
-  color: white;
-  padding-left: 28px;
-  padding-right: 28px;
-}
-
-.bk-btn-pay:hover {
-  background: #4a5638;
-}
-
-/* =========================================================
-   REVIEW
-========================================================= */
-
-.bk-review {
-  max-width: 760px;
-}
-
-.bk-review-card,
-.bk-confirm-card {
-  background: white;
-  border: 1px solid #e7e1d4;
-  border-radius: 18px;
-  padding: 26px;
+.bk-ticket__change {
+  align-self: flex-start;
+  font-size: var(--t-sm);
 }
 
 .bk-review-header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #efe9dd;
+  gap: var(--s-4);
 }
 
 .bk-review-header h4 {
-  margin: 0 0 4px;
-  font-size: 17px;
+  font-size: var(--t-md);
 }
 
 .bk-review-header span {
-  color: #5c6a48;
-  font-size: 13px;
+  font-size: var(--t-sm);
+  color: var(--c-dusk);
   font-weight: 600;
 }
 
-.bk-avatar-sm {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
 .bk-review-rows {
-  padding: 8px 0;
+  margin: 0;
+  border-top: 1px dashed var(--c-line-strong);
 }
 
 .bk-review-row {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
-  padding: 14px 0;
-  border-bottom: 1px solid #efe9dd;
-  font-size: 14px;
+  gap: var(--s-4);
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--c-line);
+  font-size: 0.95rem;
 }
 
-.bk-review-row span {
-  color: #4b5147;
+.bk-review-row dt {
+  color: var(--c-ink-3);
 }
 
-.bk-review-row strong {
+.bk-review-row dd {
+  margin: 0;
   text-align: right;
-  color: #22261e;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .bk-price-row {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 20px 0;
-  font-weight: 700;
+  align-items: baseline;
+  gap: var(--s-4);
+  padding-top: var(--s-2);
+  font-weight: 600;
 }
 
 .bk-price {
-  font-size: 22px;
+  font-size: 2.4rem;
+  font-weight: 400;
+  line-height: 1;
 }
 
 .bk-payment-note {
-  margin: 0;
-  padding: 13px;
-  background: #f6f2ea;
-  color: #4b5147;
-  border-radius: 9px;
-  font-size: 12px;
-  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--t-xs);
+  color: var(--c-ink-3);
 }
 
-/* =========================================================
-   CONFIRMATION
-========================================================= */
+/* confirmed */
 
 .bk-confirmed {
-  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-5);
   text-align: center;
 }
 
-.bk-confirmed h2 {
-  margin: 0;
-  font-size: 34px;
-}
-
-.bk-confirm-sub {
-  color: #4b5147;
-  line-height: 1.6;
-  margin: 10px auto 28px;
-  max-width: 600px;
-}
-
-.bk-confirm-card {
+.bk-confirmed .bk-ticket {
   text-align: left;
 }
 
-.bk-confirm-actions {
-  margin-top: 24px;
-  display: flex;
-  justify-content: center;
+.bk-confirm-sub {
+  max-width: 34rem;
+  color: var(--c-ink-2);
 }
 
-.bk-confirm-actions .bk-btn-primary {
-  min-width: 220px;
-}
-
-/* =========================================================
-   ANIMATION
-========================================================= */
-
-.anim-up {
-  animation: bkFadeUp 0.35s ease both;
-}
-
-@keyframes bkFadeUp {
+@keyframes rise-bk {
   from {
     opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: translateY(14px);
   }
 }
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+/* ---------- responsive ---------- */
 
-@media (max-width: 800px) {
-  .bk-nav {
-    padding: 0 20px;
+@media (max-width: 900px) {
+  .bk-two-col {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .bk-container {
-    width: min(100% - 24px, 700px);
+  .bk-ticket--mini {
+    position: static;
+    order: -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .bk-steps {
+    display: flex;
+    gap: var(--s-3);
+  }
+
+  .bk-step {
+    flex: none;
+    padding-right: 0;
+  }
+
+  .bk-step.active {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .bk-step-label {
+    display: none;
+  }
+
+  .bk-step.active .bk-step-label {
+    display: inline;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bk-slot-day {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-2);
+  }
+
+  .bk-slot-date {
+    padding-top: 0;
   }
 
   .bk-interviewer-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .bk-slots-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .bk-step {
-    min-width: 100px;
-  }
-
-  .bk-step-label {
-    font-size: 10px;
-  }
-}
-
-@media (max-width: 550px) {
-  .bk-nav-tag {
-    display: none;
-  }
-
-  .bk-steps {
-    padding: 30px 0;
-  }
-
-  .bk-step {
-    min-width: 70px;
-  }
-
-  .bk-step-label {
-    display: none;
-  }
-
-  .bk-slots-grid {
-    grid-template-columns: 1fr;
+  .bk-ticket {
+    padding: var(--s-5);
   }
 
   .bk-form-actions {
     flex-direction: column-reverse;
   }
 
-  .bk-btn-primary,
-  .bk-btn-outline,
-  .bk-btn-pay {
+  .bk-form-actions .btn {
     width: 100%;
-  }
-
-  .bk-review-row {
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  .bk-review-row strong {
-    text-align: left;
   }
 }
