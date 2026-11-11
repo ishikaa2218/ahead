@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { AmbientLight } from "../components/ambient/AmbientLight";
 import { AppHeader } from "../components/AppHeader";
 import { Icon } from "../components/Icon";
 import "../stylesheets/preJoinCheck.css";
@@ -163,6 +164,7 @@ export function PreJoinCheck() {
 
   return (
     <div className="pj-page page">
+      <AmbientLight scene="app" />
       <AppHeader
         crumb="Before you start"
         onBrandClick={() => navigate("/dashboard")}

@@ -5,6 +5,9 @@ import lightImage from "../assets/a79540c1159df6b08aa6ba4651435a54.jpg";
 import { Navbar } from "../components/Navbar";
 import { SiteFooter } from "../components/SiteFooter";
 import { useReveal } from "../components/useReveal";
+import { AmbientLight } from "../components/ambient/AmbientLight";
+import { LitText } from "../components/ambient/LitText";
+import { useParallax } from "../components/ambient/useParallax";
 import "../stylesheets/home.css";
 import "../stylesheets/becomeInterviewer.css";
 
@@ -97,6 +100,7 @@ export function BecomeInterviewer() {
   const [subscribed, setSubscribed] = useState(false);
 
   useReveal();
+  useParallax();
 
   function handleNewsletterSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -109,10 +113,11 @@ export function BecomeInterviewer() {
 
   return (
     <div className="home interviewer page">
+      <AmbientLight welcome />
       <Navbar />
 
       <main id="main">
-        <section className="iv-hero" aria-labelledby="iv-title">
+        <section className="iv-hero" aria-labelledby="iv-title" data-ambient="dawn">
           <div className="wrap iv-hero__grid">
             <div className="iv-hero__copy">
               <p className="eyebrow hero__eyebrow">For interviewers</p>
@@ -131,6 +136,7 @@ export function BecomeInterviewer() {
                 <Link
                   to="/login?mode=signup&role=interviewer"
                   className="btn btn--dusk"
+                  data-magnetic
                 >
                   Become an interviewer
                   <span className="btn__arrow" aria-hidden="true">→</span>
@@ -140,7 +146,7 @@ export function BecomeInterviewer() {
                 </a>
               </div>
             </div>
-            <figure className="iv-hero__image">
+            <figure className="iv-hero__image" data-parallax="0.05">
               <img
                 src={lightImage}
                 alt="Morning light falling through blinds onto a warm wall"
@@ -154,7 +160,7 @@ export function BecomeInterviewer() {
           </div>
         </section>
 
-        <section id="interviewer-benefits" className="iv-benefits" aria-labelledby="iv-benefits-title">
+        <section id="interviewer-benefits" className="iv-benefits" aria-labelledby="iv-benefits-title" data-ambient="sand">
           <div className="wrap">
             <header className="section-head">
               <p className="eyebrow" data-reveal>Why interview with Ahead</p>
@@ -176,7 +182,7 @@ export function BecomeInterviewer() {
           </div>
         </section>
 
-        <section id="interviewer-how-it-works" className="moments" aria-labelledby="iv-steps-title">
+        <section id="interviewer-how-it-works" className="moments" aria-labelledby="iv-steps-title" data-ambient="path">
           <div className="wrap moments__grid">
             <header className="moments__head">
               <p className="eyebrow" data-reveal>How it works</p>
@@ -200,7 +206,7 @@ export function BecomeInterviewer() {
           </div>
         </section>
 
-        <section id="interviewer-requirements" className="iv-reqs" aria-labelledby="iv-reqs-title">
+        <section id="interviewer-requirements" className="iv-reqs" aria-labelledby="iv-reqs-title" data-ambient="dusk">
           <div className="wrap iv-reqs__grid">
             <header className="iv-reqs__head">
               <p className="eyebrow" data-reveal>What we look for</p>
@@ -223,11 +229,13 @@ export function BecomeInterviewer() {
           </div>
         </section>
 
-        <section className="closing" aria-labelledby="iv-closing-title">
+        <section className="closing" aria-labelledby="iv-closing-title" data-ambient="dark" data-surface="dark" data-spotlight>
           <div className="wrap iv-closing">
-            <h2 id="iv-closing-title" className="closing__title serif" data-reveal>
-              Ready to help someone <em>go ahead?</em>
-            </h2>
+            <LitText
+              id="iv-closing-title"
+              className="closing__title serif"
+              parts={["Ready to help someone", { em: "go ahead?" }]}
+            />
             <p className="closing__lede" data-reveal style={{ ["--i" as string]: 1 }}>
               Sign up as an interviewer and set your first availability slot.
             </p>
@@ -235,6 +243,7 @@ export function BecomeInterviewer() {
               <Link
                 to="/login?mode=signup&role=interviewer"
                 className="btn btn--amber"
+                data-magnetic
               >
                 Become an interviewer
                 <span className="btn__arrow" aria-hidden="true">→</span>

@@ -12,7 +12,10 @@ interface AppHeaderProps {
 /** Slim header for the app and the flows inside it. */
 export function AppHeader({ crumb, tone = "light", onBrandClick, brandTo = "/", children }: AppHeaderProps) {
   return (
-    <header className={`app-header${tone === "dusk" ? " app-header--dusk" : ""}`}>
+    <header
+      className={`app-header${tone === "dusk" ? " app-header--dusk" : ""}`}
+      data-surface={tone === "dusk" ? "dark" : undefined}
+    >
       <a className="skip-link" href="#main">
         Skip to content
       </a>

@@ -29,6 +29,21 @@
   animation: dusk-lamp var(--d-light) var(--ease-out) both;
 }
 
+.bk-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(30% 60% at var(--sx) var(--sy), rgba(228, 164, 106, 0.14), rgba(228, 164, 106, 0) 70%);
+  opacity: 0;
+  transition: opacity 900ms var(--ease-out);
+  pointer-events: none;
+}
+
+.bk-hero[data-lit]::after {
+  opacity: 1;
+}
+
 @keyframes dusk-lamp {
   from {
     opacity: 0;

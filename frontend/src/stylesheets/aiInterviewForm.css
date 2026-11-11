@@ -287,10 +287,14 @@
 
 .ai-summary__glow {
   position: absolute;
-  inset: 0 0 auto;
-  height: 140px;
-  background: radial-gradient(70% 100% at 50% 0%, rgba(228, 164, 106, 0.35), transparent);
+  inset: 0;
+  background: radial-gradient(70% 22% at var(--sx) var(--sy), rgba(228, 164, 106, 0.35), rgba(228, 164, 106, 0) 100%);
   z-index: -1;
+}
+
+.ai-summary__card[data-spotlight] {
+  --sx: 50%;
+  --sy: 0%;
 }
 
 .ai-summary__label {

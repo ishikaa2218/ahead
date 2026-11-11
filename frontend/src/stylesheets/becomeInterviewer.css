@@ -52,7 +52,7 @@
 
 .iv-benefits {
   padding-block: var(--section-y);
-  background: var(--c-ground-2);
+  background: transparent;
 }
 
 .iv-list {
@@ -90,7 +90,7 @@
 
 .iv-reqs {
   padding-block: var(--section-y);
-  background: var(--c-dusk-wash);
+  background: transparent;
 }
 
 .iv-reqs__grid {
@@ -129,6 +129,7 @@
 
 .iv-closing {
   position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;

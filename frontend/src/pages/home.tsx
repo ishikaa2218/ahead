@@ -6,6 +6,9 @@ import { Navbar } from "../components/Navbar";
 import { RoomScene } from "../components/RoomScene";
 import { SiteFooter } from "../components/SiteFooter";
 import { useReveal } from "../components/useReveal";
+import { AmbientLight } from "../components/ambient/AmbientLight";
+import { LitText } from "../components/ambient/LitText";
+import { useParallax } from "../components/ambient/useParallax";
 import "../stylesheets/home.css";
 
 interface Moment {
@@ -118,6 +121,7 @@ export function Home() {
   const [subscribed, setSubscribed] = useState(false);
 
   useReveal();
+  useParallax();
 
   useEffect(() => {
     if (!location.hash) {
@@ -138,11 +142,12 @@ export function Home() {
 
   return (
     <div className="home page">
+      <AmbientLight welcome />
       <Navbar />
 
       <main id="main">
         {/* ---------------------------------------------------------- HERO */}
-        <section className="hero" aria-labelledby="hero-title">
+        <section className="hero" aria-labelledby="hero-title" data-ambient="dawn">
           <div className="wrap hero__grid">
             <div className="hero__copy">
               <p className="eyebrow hero__eyebrow">For the hours before</p>
@@ -158,7 +163,7 @@ export function Home() {
                 who walks in is the real you.
               </p>
               <div className="hero__actions">
-                <Link to="/ai-interview-form" className="btn btn--amber">
+                <Link to="/ai-interview-form" className="btn btn--amber" data-magnetic>
                   Step into the Open Room
                   <span className="btn__arrow" aria-hidden="true">→</span>
                 </Link>
@@ -171,19 +176,21 @@ export function Home() {
               </p>
             </div>
 
-            <div className="hero__scene">
+            <div className="hero__scene" data-parallax="0.06">
               <RoomScene />
             </div>
           </div>
         </section>
 
         {/* ------------------------------------------------------ PROBLEM */}
-        <section className="statement" aria-labelledby="statement-title">
+        <section className="statement" aria-labelledby="statement-title" data-ambient="still">
           <div className="wrap statement__grid">
             <p className="eyebrow" data-reveal>Why Ahead exists</p>
-            <h2 id="statement-title" className="statement__title serif" data-reveal style={{ ["--i" as string]: 1 }}>
-              People aren't bad at interviews. <em>They're new to them.</em>
-            </h2>
+            <LitText
+              id="statement-title"
+              className="statement__title serif"
+              parts={["People aren't bad at interviews.", { em: "They're new to them." }]}
+            />
             <div className="statement__body" data-reveal style={{ ["--i" as string]: 2 }}>
               <p>
                 You studied. You know the material. And then, in a room with a
@@ -201,7 +208,7 @@ export function Home() {
         </section>
 
         {/* -------------------------------------------------------- ROOMS */}
-        <section id="features" className="rooms" aria-labelledby="rooms-title">
+        <section id="features" className="rooms" aria-labelledby="rooms-title" data-ambient="sand">
           <div className="wrap">
             <header className="section-head">
               <p className="eyebrow" data-reveal>Two rooms</p>
@@ -211,7 +218,7 @@ export function Home() {
             </header>
 
             <div className="rooms__grid">
-              <article className="room-panel room-panel--open" data-reveal>
+              <article className="room-panel room-panel--open" data-reveal data-tilt>
                 <div className="room-panel__light" aria-hidden="true" />
                 <p className="room-panel__kicker">The Open Room</p>
                 <h3 className="room-panel__title serif">
@@ -242,7 +249,7 @@ export function Home() {
                 </Link>
               </article>
 
-              <article className="room-panel room-panel--real" data-reveal style={{ ["--i" as string]: 1 }}>
+              <article className="room-panel room-panel--real" data-reveal data-tilt data-spotlight data-surface="dark" style={{ ["--i" as string]: 1 }}>
                 <p className="room-panel__kicker">The Real Room</p>
                 <h3 className="room-panel__title serif">
                   A person. A company. <em>A time.</em>
@@ -276,7 +283,7 @@ export function Home() {
         </section>
 
         {/* ------------------------------------------------- HOW IT WORKS */}
-        <section id="how-it-works" className="moments" aria-labelledby="moments-title">
+        <section id="how-it-works" className="moments" aria-labelledby="moments-title" data-ambient="path">
           <div className="wrap moments__grid">
             <header className="moments__head">
               <p className="eyebrow" data-reveal>How it works</p>
@@ -307,7 +314,7 @@ export function Home() {
         </section>
 
         {/* ------------------------------------------------------ PRICING */}
-        <section id="pricing" className="pricing" aria-labelledby="pricing-title">
+        <section id="pricing" className="pricing" aria-labelledby="pricing-title" data-ambient="sand">
           <div className="wrap">
             <header className="section-head section-head--center">
               <p className="eyebrow eyebrow--plain" data-reveal>Pricing</p>
@@ -325,6 +332,9 @@ export function Home() {
                   key={plan.id}
                   className={`plan plan--${plan.variant}`}
                   data-reveal
+                  data-tilt
+                  data-spotlight={plan.variant === "real" ? "" : undefined}
+                  data-surface={plan.variant === "real" ? "dark" : undefined}
                   style={{ ["--i" as string]: index }}
                 >
                   <header className="plan__head">
@@ -365,17 +375,19 @@ export function Home() {
         </section>
 
         {/* ------------------------------------------ THE GOOD-LUCK RULE */}
-        <section id="testimonials" className="goahead" aria-labelledby="goahead-title">
+        <section id="testimonials" className="goahead" aria-labelledby="goahead-title" data-ambient="warm">
           <div className="wrap goahead__grid">
-            <div className="goahead__words" aria-hidden="true">
+            <div className="goahead__words" aria-hidden="true" data-parallax="0.05">
               <span className="goahead__struck serif">Good luck.</span>
               <span className="goahead__said serif">Go ahead.</span>
             </div>
             <div className="goahead__copy">
               <p className="eyebrow" data-reveal>The good-luck rule</p>
-              <h2 id="goahead-title" className="goahead__title serif" data-reveal style={{ ["--i" as string]: 1 }}>
-                We never say good luck.
-              </h2>
+              <LitText
+                id="goahead-title"
+                className="goahead__title serif"
+                parts={["We never say good luck."]}
+              />
               <p data-reveal style={{ ["--i" as string]: 2 }}>
                 Luck says the outcome is chance — that the late nights, the
                 projects, the rehearsing, the shaking hands at 6 a.m. were
@@ -393,9 +405,9 @@ export function Home() {
         </section>
 
         {/* --------------------------------------------------- CLOSING CTA */}
-        <section className="closing" aria-labelledby="closing-title">
+        <section className="closing" aria-labelledby="closing-title" data-ambient="dark" data-surface="dark" data-spotlight>
           <div className="wrap closing__grid">
-            <figure className="closing__image" data-reveal="mask">
+            <figure className="closing__image" data-reveal="mask" data-parallax="0.04">
               <img
                 src={doorImage}
                 alt="A door left open in a quiet room at dawn, light falling across the floor"
@@ -405,15 +417,17 @@ export function Home() {
               />
             </figure>
             <div className="closing__copy">
-              <h2 id="closing-title" className="closing__title serif" data-reveal>
-                The room is ready <em>when you are.</em>
-              </h2>
+              <LitText
+                id="closing-title"
+                className="closing__title serif"
+                parts={["The room is ready", { em: "when you are." }]}
+              />
               <p className="closing__lede" data-reveal style={{ ["--i" as string]: 1 }}>
                 Make an account, set up your first practice, and come back
                 whenever you need a quiet place to get ready.
               </p>
               <div className="closing__actions" data-reveal style={{ ["--i" as string]: 2 }}>
-                <Link to="/login?mode=signup" className="btn btn--amber">
+                <Link to="/login?mode=signup" className="btn btn--amber" data-magnetic>
                   Create your account
                   <span className="btn__arrow" aria-hidden="true">→</span>
                 </Link>

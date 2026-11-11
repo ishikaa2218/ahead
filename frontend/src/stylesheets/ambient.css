@@ -1,0 +1,479 @@
+/* =====================================================================
+   AHEAD — AMBIENT LAYER
+   Light that behaves like morning light in a quiet room: it arrives
+   slowly, moves with you, and gathers where something matters.
+   Only Ahead's palette: amber (the lamp / the sun), ivory (window light),
+   sand, and a breath of dusk. No blur filters — gradients, opacity and
+   transforms only.
+   ===================================================================== */
+
+@property --tilt-x {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --tilt-y {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --lift {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --sx {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 80%;
+}
+
+@property --sy {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 10%;
+}
+
+:root {
+  --amb-slow: 2200ms;
+  --amb-ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Pages are their own stacking context so the light sits between the
+   page background and the content. */
+.page {
+  position: relative;
+  isolation: isolate;
+}
+
+/* ---------------------------------------------------------------------
+   The light field
+   --------------------------------------------------------------------- */
+
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.ambient__base {
+  position: absolute;
+  inset: 0;
+  background-color: var(--c-ground);
+  transition: background-color var(--amb-slow) var(--amb-ease);
+}
+
+.ambient__drift {
+  position: absolute;
+  inset: 0;
+  transition: opacity 2600ms var(--amb-ease);
+  will-change: transform;
+}
+
+.ambient__light {
+  --x: 50vw;
+  --y: 50vh;
+  --o: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 90vmax;
+  height: 90vmax;
+  border-radius: 50%;
+  opacity: var(--o);
+  transform: translate3d(calc(var(--x) - 50%), calc(var(--y) - 50%), 0);
+  transition:
+    transform var(--amb-slow) var(--amb-ease),
+    opacity var(--amb-slow) var(--amb-ease);
+}
+
+/* the sun: amber, warm, the main source */
+.ambient__light--sun {
+  background: radial-gradient(closest-side, rgba(228, 164, 106, 0.34), rgba(228, 164, 106, 0.12) 45%, rgba(228, 164, 106, 0) 72%);
+}
+
+/* the window: pale ivory light that lifts whatever is in front of it */
+.ambient__light--window {
+  width: 70vmax;
+  height: 70vmax;
+  background: radial-gradient(closest-side, rgba(255, 251, 244, 0.95), rgba(255, 251, 244, 0.35) 50%, rgba(255, 251, 244, 0) 75%);
+}
+
+/* the floor: light pooling low, gathers near the calls to action */
+.ambient__light--floor {
+  width: 60vmax;
+  height: 40vmax;
+  background: radial-gradient(closest-side, rgba(243, 215, 184, 0.6), rgba(243, 215, 184, 0) 75%);
+}
+
+/* dusk: a breath of the hour before dawn, used sparingly */
+.ambient__light--dusk {
+  width: 70vmax;
+  height: 70vmax;
+  background: radial-gradient(closest-side, rgba(185, 173, 196, 0.32), rgba(185, 173, 196, 0) 72%);
+}
+
+/* ---------------------------------------------------------------------
+   Tones (set by the section in the middle of the viewport)
+   --------------------------------------------------------------------- */
+
+/* the room just before the light comes in */
+.ambient[data-waking] .ambient__base {
+  background-color: #ebe2d4;
+}
+.ambient[data-waking] .ambient__drift {
+  opacity: 0;
+}
+
+/* hero — first light from the top right */
+.ambient[data-tone="dawn"] .ambient__light--sun { --x: 78vw; --y: 8vh; --o: 1; }
+.ambient[data-tone="dawn"] .ambient__light--window { --x: 12vw; --y: 40vh; --o: 0.55; }
+.ambient[data-tone="dawn"] .ambient__light--floor { --x: 70vw; --y: 95vh; --o: 0.45; }
+
+/* a quiet statement — the light steps back */
+.ambient[data-tone="still"] .ambient__base { background-color: #f5f0e7; }
+.ambient[data-tone="still"] .ambient__light--sun { --x: 88vw; --y: 20vh; --o: 0.4; }
+.ambient[data-tone="still"] .ambient__light--window { --x: 40vw; --y: 45vh; --o: 0.8; }
+.ambient[data-tone="still"] .ambient__light--dusk { --x: 5vw; --y: 85vh; --o: 0.35; }
+
+/* sand — the rooms and pricing: light gathers behind the content */
+.ambient[data-tone="sand"] .ambient__base { background-color: #efe7db; }
+.ambient[data-tone="sand"] .ambient__light--sun { --x: 60vw; --y: 25vh; --o: 0.65; }
+.ambient[data-tone="sand"] .ambient__light--window { --x: 50vw; --y: 55vh; --o: 1; }
+.ambient[data-tone="sand"] .ambient__light--floor { --x: 50vw; --y: 90vh; --o: 0.6; }
+
+/* the path — light travels down the timeline */
+.ambient[data-tone="path"] .ambient__light--sun { --x: 18vw; --y: 70vh; --o: 0.6; }
+.ambient[data-tone="path"] .ambient__light--window { --x: 65vw; --y: 40vh; --o: 0.75; }
+.ambient[data-tone="path"] .ambient__light--floor { --x: 30vw; --y: 100vh; --o: 0.5; }
+
+/* warm — the good-luck rule: a lamp left on behind the words */
+.ambient[data-tone="warm"] .ambient__base { background-color: #f7eee2; }
+.ambient[data-tone="warm"] .ambient__light--sun { --x: 22vw; --y: 50vh; --o: 1; }
+.ambient[data-tone="warm"] .ambient__light--window { --x: 70vw; --y: 50vh; --o: 0.6; }
+.ambient[data-tone="warm"] .ambient__light--floor { --x: 25vw; --y: 95vh; --o: 0.7; }
+
+/* dusk — a cooler, softer room for the quieter interviewer sections */
+.ambient[data-tone="dusk"] .ambient__base { background-color: #ece6ec; }
+.ambient[data-tone="dusk"] .ambient__light--sun { --x: 82vw; --y: 30vh; --o: 0.45; }
+.ambient[data-tone="dusk"] .ambient__light--window { --x: 35vw; --y: 50vh; --o: 0.7; }
+.ambient[data-tone="dusk"] .ambient__light--dusk { --x: 15vw; --y: 30vh; --o: 0.9; }
+
+/* the closing call — the room behind the dark panel stays warm */
+.ambient[data-tone="dark"] .ambient__light--sun { --x: 50vw; --y: 100vh; --o: 0.4; }
+.ambient[data-tone="dark"] .ambient__light--floor { --x: 50vw; --y: 100vh; --o: 0.8; }
+
+/* app pages — one steady light and the cursor lamp */
+.ambient--app .ambient__light--sun { --x: 92vw; --y: 0vh; --o: 0.55; }
+.ambient--app .ambient__light--window { --x: 8vw; --y: 55vh; --o: 0.45; }
+
+/* ---------------------------------------------------------------------
+   Lite mode (phones, touch, low-power): the page background carries the
+   tone instead of a fixed light layer.
+   --------------------------------------------------------------------- */
+
+.home.page {
+  transition: background-color var(--amb-slow) var(--amb-ease);
+}
+
+.page[data-amb-waking] { background-color: #ebe2d4; }
+.page[data-amb-tone="still"] { background-color: #f5f0e7; }
+.page[data-amb-tone="sand"] { background-color: #efe7db; }
+.page[data-amb-tone="warm"] { background-color: #f7eee2; }
+.page[data-amb-tone="dusk"] { background-color: #ece6ec; }
+
+/* ---------------------------------------------------------------------
+   Cursor lamp
+   --------------------------------------------------------------------- */
+
+.ambient__lamp-anchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.ambient__lamp {
+  position: absolute;
+  top: -260px;
+  left: -260px;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(228, 164, 106, 0.16), rgba(228, 164, 106, 0.05) 55%, rgba(228, 164, 106, 0) 75%);
+  opacity: 0;
+  transition: opacity 900ms var(--amb-ease);
+  will-change: transform;
+}
+
+.ambient__lamp.is-on {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------------
+   Custom cursor
+   --------------------------------------------------------------------- */
+
+html.has-custom-cursor,
+html.has-custom-cursor * {
+  cursor: none !important;
+}
+
+/* text fields keep the native text cursor — typing and selecting stay normal */
+html.has-custom-cursor :is(input:not([type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="file"], [type="range"]), textarea, select, [contenteditable="true"]) {
+  cursor: auto !important;
+}
+
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  translate: -100px -100px;
+}
+
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--c-ink);
+  transition:
+    opacity 300ms var(--ease-out),
+    scale 260ms var(--ease-out),
+    background-color 300ms var(--ease-out);
+}
+
+.cursor-ring {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1px solid rgba(29, 26, 23, 0.32);
+  background: rgba(228, 164, 106, 0);
+  transition:
+    opacity 300ms var(--ease-out),
+    scale 380ms var(--ease-out),
+    background-color 380ms var(--ease-out),
+    border-color 380ms var(--ease-out);
+}
+
+html.cursor-visible .cursor-dot,
+html.cursor-visible .cursor-ring {
+  opacity: 1;
+}
+
+.cursor-ring[data-state="link"] {
+  scale: 1.35;
+  background: rgba(228, 164, 106, 0.14);
+  border-color: rgba(154, 82, 33, 0.28);
+}
+.cursor-dot[data-state="link"] {
+  scale: 0.6;
+}
+
+.cursor-ring[data-state="cta"] {
+  scale: 1.75;
+  background: rgba(228, 164, 106, 0.2);
+  border-color: rgba(228, 164, 106, 0);
+}
+.cursor-dot[data-state="cta"] {
+  scale: 0;
+}
+
+.cursor-ring[data-state="drag"] {
+  scale: 1.9 1.25;
+  background: rgba(228, 164, 106, 0.12);
+}
+
+.cursor-ring[data-state="disabled"] {
+  scale: 0.85;
+  border-style: dashed;
+}
+
+html.cursor-visible .cursor-ring[data-state="text"],
+html.cursor-visible .cursor-dot[data-state="text"] {
+  opacity: 0;
+}
+
+.cursor-dot[data-tone="light"] {
+  background: var(--c-ground);
+}
+.cursor-ring[data-tone="light"] {
+  border-color: rgba(246, 241, 233, 0.45);
+}
+.cursor-ring[data-tone="light"][data-state="link"],
+.cursor-ring[data-tone="light"][data-state="cta"] {
+  background: rgba(228, 164, 106, 0.24);
+  border-color: rgba(228, 164, 106, 0.4);
+}
+
+.cursor-ring.is-down {
+  scale: 0.82;
+  transition-duration: 120ms;
+}
+
+/* ---------------------------------------------------------------------
+   Depth: tilt, spotlight, magnetic, button sheen
+   --------------------------------------------------------------------- */
+
+/* `.page` raises specificity above the reveal rules, which also set transform */
+.page [data-tilt] {
+  transform: perspective(1100px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(var(--lift));
+  transition:
+    transform 520ms var(--ease-out),
+    box-shadow 520ms var(--ease-out);
+}
+
+.page [data-tilt]:hover,
+.page [data-tilt][data-tilting] {
+  --lift: -4px;
+  box-shadow: var(--e-2);
+}
+
+[data-tilting] {
+  transition-duration: 240ms, 520ms;
+}
+
+/* tilted cards still rise into place when revealed */
+.page [data-reveal][data-tilt]:not([data-shown="true"]) {
+  --lift: 18px;
+}
+
+[data-spotlight] {
+  --sx: 82%;
+  --sy: 8%;
+  transition: --sx 900ms var(--ease-out), --sy 900ms var(--ease-out);
+}
+
+[data-magnetic] {
+  transition:
+    translate 420ms var(--ease-out),
+    background-color var(--d-fast) var(--ease-out),
+    color var(--d-fast) var(--ease-out),
+    border-color var(--d-fast) var(--ease-out),
+    box-shadow var(--d-base) var(--ease-out),
+    transform var(--d-instant) var(--ease-out);
+}
+
+/* a little light where your pointer rests on a button */
+.btn {
+  isolation: isolate;
+}
+
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(90px circle at var(--hx, 50%) var(--hy, 50%), rgba(255, 246, 232, 0.22), rgba(255, 246, 232, 0) 70%);
+  opacity: 0;
+  transition: opacity 360ms var(--ease-out);
+}
+
+.btn--amber::before {
+  background: radial-gradient(90px circle at var(--hx, 50%) var(--hy, 50%), rgba(255, 250, 240, 0.55), rgba(255, 250, 240, 0) 70%);
+}
+
+.btn:hover::before {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------------
+   The confidence reveal (LitText)
+   --------------------------------------------------------------------- */
+
+[data-reveal="lit"] {
+  position: relative;
+  opacity: 1;
+  transform: none;
+}
+
+.lit__word {
+  display: inline-block;
+  opacity: 0.14;
+  transform: translateY(0.14em);
+  transition:
+    opacity 1100ms var(--ease-out),
+    transform 1100ms var(--ease-out);
+  transition-delay: calc(var(--w, 0) * 75ms + 120ms);
+}
+
+[data-reveal="lit"][data-shown="true"] .lit__word {
+  opacity: 1;
+  transform: none;
+}
+
+/* one slow pass of warm light across the line as it arrives */
+[data-reveal="lit"]::after {
+  content: "";
+  position: absolute;
+  inset: -12% -4%;
+  pointer-events: none;
+  background: linear-gradient(100deg, rgba(228, 164, 106, 0) 35%, rgba(228, 164, 106, 0.2) 50%, rgba(228, 164, 106, 0) 65%);
+  background-size: 260% 100%;
+  background-position: 100% 0;
+  opacity: 0;
+}
+
+[data-reveal="lit"][data-shown="true"]::after {
+  animation: light-pass 2600ms var(--amb-ease) 200ms 1 both;
+}
+
+@keyframes light-pass {
+  0% {
+    opacity: 0;
+    background-position: 100% 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    background-position: 0% 0;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Gentle float
+   --------------------------------------------------------------------- */
+
+@keyframes float-soft {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-5px);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Reduced motion: the light still sets the mood, it just doesn't move
+   --------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient__drift {
+    transform: none !important;
+  }
+
+  .lit__word {
+    opacity: 1;
+    transform: none;
+  }
+
+  [data-reveal="lit"]::after {
+    display: none;
+  }
+
+  .page [data-tilt] {
+    transform: none;
+  }
+}
