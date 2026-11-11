@@ -259,7 +259,9 @@
   background: rgba(251, 248, 243, 0.92);
   backdrop-filter: blur(8px);
   box-shadow: var(--e-2);
-  animation: note-in var(--d-reveal) var(--ease-out) 2.6s both;
+  animation:
+    note-in var(--d-reveal) var(--ease-out) 2.6s both,
+    float-soft 6s var(--ease-in-out) 3.6s infinite alternate;
 }
 
 .room__note-time {
@@ -332,7 +334,8 @@
 
 .rooms {
   padding-block: var(--section-y);
-  background: var(--c-ground-2);
+  /* the sand tone now comes from the ambient light, so sections blend */
+  background: transparent;
 }
 
 .rooms__grid {
@@ -379,16 +382,13 @@
 }
 
 .room-panel--real::after {
-  /* a lamp in the corner of a focused room */
+  /* a lamp in the corner of a focused room — it follows the pointer */
   content: "";
   position: absolute;
-  right: -20%;
-  top: -30%;
-  width: 70%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(228, 164, 106, 0.28), transparent);
+  inset: 0;
+  background: radial-gradient(45% 50% at var(--sx) var(--sy), rgba(228, 164, 106, 0.3), rgba(228, 164, 106, 0) 70%);
   z-index: -1;
+  pointer-events: none;
 }
 
 .room-panel__kicker {
@@ -558,8 +558,7 @@
 
 .pricing {
   padding-block: var(--section-y);
-  background:
-    linear-gradient(180deg, var(--c-ground) 0%, var(--c-ground-2) 100%);
+  background: transparent;
 }
 
 .pricing__grid {
@@ -583,9 +582,20 @@
     box-shadow var(--d-slow) var(--ease-out);
 }
 
-.plan:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--e-2);
+.plan--real {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* the Real Room plan's light follows the pointer (see [data-spotlight]) */
+.plan--real::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(45% 55% at var(--sx) var(--sy), rgba(228, 164, 106, 0.24), rgba(228, 164, 106, 0) 70%);
+  pointer-events: none;
 }
 
 .plan--real {
@@ -772,7 +782,31 @@
   overflow: hidden;
 }
 
+.closing::after {
+  /* the pointer carries a little warmth across the dark room */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(28% 40% at var(--sx) var(--sy), rgba(228, 164, 106, 0.1), rgba(228, 164, 106, 0) 70%);
+  opacity: 0;
+  transition: opacity 900ms var(--ease-out);
+  pointer-events: none;
+}
+
+.closing[data-lit]::after {
+  opacity: 1;
+}
+
+.closing[data-spotlight] {
+  --sx: 30%;
+  --sy: 80%;
+}
+
 .closing::before {
+  transition:
+    opacity 2200ms var(--ease-out),
+    transform 2200ms var(--ease-out);
+  opacity: 0.55;
   content: "";
   position: absolute;
   left: -10%;
@@ -783,8 +817,15 @@
   background: radial-gradient(closest-side, rgba(228, 164, 106, 0.18), transparent);
 }
 
+/* the call to action gathers the light when it's in front of you */
+.closing[data-ambient-active]::before {
+  opacity: 1;
+  transform: scale(1.18);
+}
+
 .closing__grid {
   position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: clamp(2rem, 1rem + 5vw, 6rem);

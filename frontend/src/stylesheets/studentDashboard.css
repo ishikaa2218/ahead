@@ -60,14 +60,17 @@
 }
 
 .next-up::before {
+  /* a lamp in the corner of the card — it leans toward the pointer */
   content: "";
   position: absolute;
-  inset: -40% -30% auto auto;
-  width: 70%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(228, 164, 106, 0.3), transparent);
+  inset: 0;
+  background: radial-gradient(55% 65% at var(--sx) var(--sy), rgba(228, 164, 106, 0.3), rgba(228, 164, 106, 0) 70%);
   z-index: -1;
+}
+
+.next-up[data-spotlight] {
+  --sx: 95%;
+  --sy: 0%;
 }
 
 .next-up--company {
