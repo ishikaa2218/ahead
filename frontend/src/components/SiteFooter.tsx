@@ -21,7 +21,7 @@ interface SiteFooterProps {
  */
 export function SiteFooter({ tagline, newsletter }: SiteFooterProps) {
   return (
-    <footer className="site-footer">
+    <footer className="site-footer" data-surface="dark">
       <div className="wrap site-footer__top">
         <div className="site-footer__brand">
           <Brand inverse />
