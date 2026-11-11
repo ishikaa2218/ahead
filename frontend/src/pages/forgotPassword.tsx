@@ -6,6 +6,7 @@ import {
   resetPassword,
   type ResetPasswordPayload,
 } from "../axios/data";
+import { AuthShell } from "../components/AuthShell";
 import "../stylesheets/login.css";
 
 type Role = "student" | "interviewer";
@@ -103,54 +104,66 @@ export function ForgotPassword() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <Link to="/" className="auth-card__brand">
-          Ahead
-        </Link>
-
-        <h1 className="auth-card__title">Reset your password</h1>
-        <p className="auth-card__subtitle">
+    <AuthShell
+      aside={{
+        quote: (
+          <>
+            It happens. <em>Let's get you back in.</em>
+          </>
+        ),
+        caption: "Your interviews and notes are right where you left them.",
+      }}
+    >
+      <div className="auth__head">
+        <p className="eyebrow">Reset password</p>
+        <h1 className="auth__title serif">
+          Choose a <em>new password.</em>
+        </h1>
+        <p className="auth__subtitle">
           Confirm your account details and choose a new password.
         </p>
+      </div>
 
-        <form className="auth-form" onSubmit={handleResetSubmit} noValidate>
-          <div className="form-group">
-            <label htmlFor="reset-email">Email</label>
-            <input
-              id="reset-email"
-              type="email"
-              required
-              autoComplete="email"
-              value={resetForm.email}
-              onChange={(event) =>
-                updateResetForm("email", event.target.value)
-              }
-            />
+      <form className="auth-form" onSubmit={handleResetSubmit} noValidate>
+        <fieldset className="auth-form__role">
+          <legend className="field__label">Account type</legend>
+          <div className="segmented">
+            {ROLE_OPTIONS.map((option) => (
+              <label key={option.value} className="segmented__option">
+                <input
+                  type="radio"
+                  name="reset-role"
+                  value={option.value}
+                  checked={resetForm.role === option.value}
+                  onChange={() => updateResetForm("role", option.value)}
+                />
+                {option.label}
+              </label>
+            ))}
           </div>
+        </fieldset>
 
-          <fieldset className="role-fieldset">
-            <legend>Account type</legend>
-            <div className="role-options">
-              {ROLE_OPTIONS.map((option) => (
-                <label key={option.value} className="role-option">
-                  <input
-                    type="radio"
-                    name="reset-role"
-                    value={option.value}
-                    checked={resetForm.role === option.value}
-                    onChange={() => updateResetForm("role", option.value)}
-                  />
-                  {option.label}
-                </label>
-              ))}
-            </div>
-          </fieldset>
+        <div className="field">
+          <label className="field__label" htmlFor="reset-email">Email</label>
+          <input
+            id="reset-email"
+            className="input"
+            type="email"
+            required
+            autoComplete="email"
+            value={resetForm.email}
+            onChange={(event) =>
+              updateResetForm("email", event.target.value)
+            }
+          />
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="reset-new-password">New password</label>
+        <div className="auth-form__pair">
+          <div className="field">
+            <label className="field__label" htmlFor="reset-new-password">New password</label>
             <input
               id="reset-new-password"
+              className="input"
               type="password"
               required
               minLength={8}
@@ -162,12 +175,13 @@ export function ForgotPassword() {
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="reset-confirm-password">
+          <div className="field">
+            <label className="field__label" htmlFor="reset-confirm-password">
               Confirm new password
             </label>
             <input
               id="reset-confirm-password"
+              className="input"
               type="password"
               required
               minLength={8}
@@ -178,28 +192,36 @@ export function ForgotPassword() {
               }
             />
           </div>
-
-          {resetError && (
-            <p className="form-error" role="alert">
-              {resetError}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            className="btn btn--primary btn--block"
-            disabled={isResetting}
-          >
-            {isResetting ? "Updating password..." : "Update Password"}
-          </button>
-        </form>
-
-        <div className="auth-links">
-          <Link to="/login" className="auth-link">
-            Back to login
-          </Link>
         </div>
+        <p className="field__hint">At least 8 characters.</p>
+
+        {resetError && (
+          <p className="notice notice--error" role="alert">
+            {resetError}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          className="btn btn--block"
+          disabled={isResetting}
+        >
+          {isResetting ? (
+            <>
+              Updating your password
+              <span className="breath" aria-hidden="true"><span /><span /><span /></span>
+            </>
+          ) : (
+            "Update password"
+          )}
+        </button>
+      </form>
+
+      <div className="auth__switch">
+        <Link to="/login" className="link-arrow">
+          <span aria-hidden="true">←</span> Back to log in
+        </Link>
       </div>
-    </div>
+    </AuthShell>
   );
 }
