@@ -8,6 +8,7 @@ import {
   type AIInterviewApplicationPayload,
 } from "../axios/booking";
 import { getApiErrorMessage } from "../axios/data";
+import { AmbientLight } from "../components/ambient/AmbientLight";
 import { AppHeader } from "../components/AppHeader";
 import { Icon } from "../components/Icon";
 import "../stylesheets/aiInterviewForm.css";
@@ -364,6 +365,7 @@ export function AIInterviewForm() {
 
   return (
     <div className="ai-page open-room page">
+      <AmbientLight scene="app" />
       <AppHeader crumb="The Open Room" onBrandClick={() => navigate("/")}>
         <span className="ai-header-note">
           <Icon name="lock" size={16} /> Your answers stay private
@@ -709,7 +711,7 @@ export function AIInterviewForm() {
           </form>
 
           <aside className="ai-summary" aria-label="Your Open Room">
-            <div className="ai-summary__card">
+            <div className="ai-summary__card" data-spotlight>
               <div className="ai-summary__glow" aria-hidden="true" />
               <p className="ai-summary__label">Your room</p>
               <p className="ai-summary__role serif">

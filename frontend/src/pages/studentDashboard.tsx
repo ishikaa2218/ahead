@@ -10,6 +10,7 @@ import {
 } from "../axios/booking";
 import { getApiErrorMessage } from "../axios/data";
 import { useAuth } from "../context/useAuth";
+import { AmbientLight } from "../components/ambient/AmbientLight";
 import { AppHeader } from "../components/AppHeader";
 import { Icon } from "../components/Icon";
 import { useReveal } from "../components/useReveal";
@@ -318,6 +319,7 @@ export function StudentDashboard() {
 
   return (
     <div className="dashboard page">
+      <AmbientLight scene="app" />
       <AppHeader crumb="Your interviews">
         {user && (
           <span className="app-header__greeting muted">
@@ -350,6 +352,8 @@ export function StudentDashboard() {
           <div
             className={`next-up ${nextUp ? `next-up--${nextUp.kind}` : "next-up--empty"}${nextUp?.readyNow ? " next-up--now" : ""}`}
             aria-live="polite"
+            data-spotlight
+            data-surface={nextUp?.kind === "company" ? "dark" : undefined}
           >
             {isLoading ? (
               <div className="next-up__loading">

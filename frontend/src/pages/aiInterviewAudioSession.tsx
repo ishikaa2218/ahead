@@ -393,7 +393,7 @@ const setVideoRef = (element: HTMLVideoElement | null) => {
   }
 
   return (
-    <div className="ais-page">
+    <div className="ais-page" data-surface="dark">
       <header className="ais-header">
         <div className="ais-header-left">
             <Brand inverse onClick={() => navigate("/dashboard")} />

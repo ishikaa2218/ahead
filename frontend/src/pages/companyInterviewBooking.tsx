@@ -13,6 +13,7 @@ import {
 } from '../axios/booking';
 import { getApiErrorMessage } from '../axios/data';
 import { useAuth } from '../context/useAuth';
+import { AmbientLight } from '../components/ambient/AmbientLight';
 import { AppHeader } from '../components/AppHeader';
 import { Icon } from '../components/Icon';
 import '../stylesheets/companyInterviewBooking.css';
@@ -461,9 +462,10 @@ export function CompanyInterviewBooking() {
 
   return (
     <div className="bk-page real-room page">
+      <AmbientLight scene="app" />
       <AppHeader tone="dusk" crumb="The Real Room · Company-based interview" />
 
-      <section className="bk-hero">
+      <section className="bk-hero" data-surface="dark" data-spotlight>
         <div className="wrap wrap--wide">
           <p className="eyebrow bk-hero__eyebrow">The Real Room</p>
           <h1 className="bk-hero__title serif">
