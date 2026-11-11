@@ -8,8 +8,13 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
   if (isLoading) {
     return (
-      <div style={{ padding: "4rem", textAlign: "center", color: "#6b7280" }}>
-        Loading…
+      <div className="waiting waiting--screen" role="status">
+        <span className="breath" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
+        <p>One moment…</p>
       </div>
     );
   }
