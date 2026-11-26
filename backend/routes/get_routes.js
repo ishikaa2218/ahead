@@ -59,12 +59,15 @@ router.get('/my-interviews', requireAuth, (req, res) => {
             DATE_FORMAT(aia.created_at, '%Y-%m-%dT%H:%i:%s') AS created_at,
             (fb.id IS NOT NULL) AS has_feedback
         FROM ai_interview_applications aia
-        LEFT JOIN ai_interview_session_status ss
-            ON ss.id = (
-                SELECT s2.id FROM ai_interview_session_status s2
-                WHERE s2.ai_interview_applications_id = aia.ai_interview_applications_id
-                ORDER BY s2.id DESC LIMIT 1
-            )
+        LEFT JOIN (
+            SELECT s2.ai_interview_applications_id, s2.ai_interview_session_status_id, s2.status
+            FROM ai_interview_session_status s2
+            JOIN (
+                SELECT ai_interview_applications_id, MAX(id) AS latest_id
+                FROM ai_interview_session_status
+                GROUP BY ai_interview_applications_id
+            ) latest ON latest.latest_id = s2.id
+        ) ss ON ss.ai_interview_applications_id = aia.ai_interview_applications_id
         LEFT JOIN ai_interview_feedback fb ON fb.ai_interview_session_status_id = ss.ai_interview_session_status_id
         WHERE aia.user_id = ?
         ORDER BY aia.created_at DESC
